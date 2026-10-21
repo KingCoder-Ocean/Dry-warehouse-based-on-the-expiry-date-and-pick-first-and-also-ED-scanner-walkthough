@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ocean King dry store - 3D walkthrough with scanning and best-before dates</title>
+<style>
+:root{--bg:#f7f6f2;--panel:#ffffff;--text:#2c2c2a;--muted:#5f5e5a;--border:#d3d1c7;--accent:#0f6e56;--accent-bg:#e1f5ee;--scene:#e8e9ec;--floor:#cfd4d9;--rack:#90a4ae;--beam:#37474f;--wood:#8d6e63;--cross:#b0bec5}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1b1b19;--panel:#262624;--text:#eceae2;--muted:#b4b2a9;--border:#444441;--accent:#5dcaa5;--accent-bg:#04342c;--scene:#1f2226;--floor:#2b3036;--rack:#78909c;--beam:#b0bec5;--wood:#795548;--cross:#455a64}}
+:root[data-theme="dark"]{--bg:#1b1b19;--panel:#262624;--text:#eceae2;--muted:#b4b2a9;--border:#444441;--accent:#5dcaa5;--accent-bg:#04342c;--scene:#1f2226;--floor:#2b3036;--rack:#78909c;--beam:#b0bec5;--wood:#795548;--cross:#455a64}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;font-size:14px}
+#app{display:grid;grid-template-columns:340px 1fr;height:100%}
+#side{overflow:auto;padding:14px;background:var(--panel);border-right:1px solid var(--border)}
+#view{position:relative;min-height:320px;background:var(--scene)}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#hint{position:absolute;left:10px;bottom:10px;right:10px;font-size:12px;color:var(--muted);pointer-events:none}
+h1{font-size:17px;margin:0 0 4px;font-weight:700}
+h2{font-size:12px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700}
+p.s{margin:0;color:var(--muted);font-size:12px;line-height:1.45}
+button,select,input[type=text]{font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px}
+button{cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.on{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+label.opt{display:flex;gap:6px;align-items:center;cursor:pointer;margin-right:10px}
+input[type=text]{width:100%}
+.legend{display:grid;grid-template-columns:1fr;gap:5px;font-size:12px}
+.legend.two{grid-template-columns:1fr 1fr}
+.legend span{display:flex;gap:7px;align-items:flex-start;line-height:1.3}
+.legend i{width:14px;height:14px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.3);flex:none;margin-top:1px}
+.explain{margin-top:8px;padding:10px 12px;border-radius:10px;background:var(--accent-bg);border:1px solid var(--accent);font-size:13px;line-height:1.5}
+.explain b{display:block;margin-bottom:3px}
+#info{margin-top:6px;font-size:13px}
+#info .lv{border-top:1px solid var(--border);padding:6px 0}
+#info .lv.sel{background:var(--accent-bg);margin:0 -6px;padding:6px;border-radius:6px}
+#info .pal,#float .pal{display:flex;gap:6px;align-items:flex-start;margin:3px 0;font-size:12px;line-height:1.35}
+#info .pal i,#float .pal i{width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.3);flex:none;margin-top:1px}
+.mut{color:var(--muted)}
+#scanfx{position:absolute;width:250px;height:160px;left:50%;top:50%;transform:translate(-50%,-50%);display:none;pointer-events:none}
+#scanfx i{position:absolute;width:36px;height:36px;border:5px solid #4caf50}
+#scanfx i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0}#scanfx i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0}
+#scanfx i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0}#scanfx i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0}
+#scanfx b{position:absolute;left:8px;right:8px;height:3px;background:#ff5252;top:8px;animation:sweep .5s linear infinite alternate}
+@keyframes sweep{from{top:8px}to{top:148px}}
+#float{position:absolute;right:12px;top:12px;width:320px;max-height:72%;overflow:auto;background:var(--panel);border:2px solid var(--accent);border-radius:12px;padding:10px 12px;display:none;font-size:13px;line-height:1.4}
+#float button{position:absolute;right:6px;top:4px;padding:0 8px;font-size:18px;line-height:24px}
+#tip{position:absolute;display:none;pointer-events:none;max-width:280px;background:var(--panel);border:1px solid var(--accent);border-radius:8px;padding:6px 9px;font-size:12px;line-height:1.35;box-shadow:0 2px 8px rgba(0,0,0,.25);z-index:5}
+.chip{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;color:#fff}
+#res button{display:block;width:100%;text-align:left;margin:3px 0;font-size:12px}
+.note{font-size:11px;color:var(--muted);line-height:1.45;margin-top:12px}
+@media (max-width:760px){#app{grid-template-columns:1fr;grid-template-rows:58% 42%}#view{order:-1}#side{border-right:0;border-top:1px solid var(--border)}}
+.bsum{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.bsum button{text-align:left;font-size:12px;padding:5px 8px;line-height:1.3}
+.bsum button b{font-size:16px;display:block}
+.bsum button i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
+#pickfirst button{display:block;width:100%;text-align:left;margin:3px 0;font-size:12px;line-height:1.3}
+.flow{display:flex;flex-direction:column;gap:3px;font-size:12px;line-height:1.35}
+.flow div{border:1px solid var(--border);border-radius:8px;padding:6px 8px;background:var(--bg)}
+.flow div.ar{border:0;background:none;padding:0;text-align:center;color:var(--muted)}
+.wms{margin-top:8px;padding:8px;border-radius:8px;background:var(--accent-bg);border:1px dashed var(--accent);font-size:12px;line-height:1.45}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="side">
+<h1>Dry store, 3D walkthrough</h1>
+<p class="s">3 aisles, 6 racks (A to F), 79 bays. Goods are placed by how fast they sell: fast movers near the cross aisle on the floor shelf, slow movers at the far ends and on the top shelves. It also shows the scanning plan: a fixed QR label on every shelf, handheld scanners for staff, fixed scanners at goods in and dispatch, and a best-before date for every pallet. Drag to turn, scroll or pinch to zoom, right-drag to move.</p>
+<h2>Guided tour</h2>
+<div class="row" id="tour"></div>
+<div class="row" style="margin-top:6px"><button id="prev">&#9664; Back</button><button id="next">Next &#9654;</button></div>
+<div class="explain" id="explain">Press Next to start the tour.</div>
+<h2>Scanner</h2>
+<div class="row"><input type="text" id="code" placeholder="Scan or type a shelf code, e.g. C-07-3" style="flex:1;min-width:0"><button id="scan">Scan</button></div>
+<div id="scanmsg" class="s" style="margin-top:4px"></div>
+<h2>Best-before check</h2>
+<p class="s" id="bbasof">Click a box to light up those pallets in 3D.</p>
+<div class="bsum" id="bsum" style="margin-top:6px"></div>
+<div class="row" style="margin-top:6px"><button id="bbclear">Clear highlight</button></div>
+<h2>Pick first (shortest date)</h2>
+<p class="s">The WMS sends pickers to these pallets first. Click one to go to it.</p>
+<div id="pickfirst"></div>
+<h2>Goods in and dispatch</h2>
+<div class="row"><button id="goin">Go to goods in</button><button id="godis">Go to dispatch</button></div>
+<h2>Where scan data goes</h2>
+<div class="flow">
+<div><b>Handheld or fixed scanner</b><br><span class="mut">Reads the shelf label and the pallet label. Stores nothing itself; sends over Wi-Fi.</span></div><div class="ar">&#9660;</div>
+<div><b>WMS (warehouse system)</b><br><span class="mut">Main record of every scan: who, when, shelf, product, cases, batch, best-before date.</span></div><div class="ar">&#9660;</div>
+<div><b>Seasons (ERP)</b><br><span class="mut">Stock levels update automatically, so office and warehouse agree.</span></div><div class="ar">&#9660;</div>
+<div><b>Azure</b><br><span class="mut">Keeps the full history for reports and forecasting.</span></div><div class="ar">&#9660;</div>
+<div><b>Power BI dashboards</b><br><span class="mut">Stock going out of date in 30, 60 and 90 days; pick accuracy; stock levels.</span></div>
+</div>
+<h2>View</h2>
+<div class="row"><button data-view="overview" class="on">Overview</button><button data-view="top">Top</button><button data-view="cross">Cross aisle</button></div>
+<div class="row" style="margin-top:6px"><select id="aisle"><option value="1">Aisle 1</option><option value="2" selected>Aisle 2</option><option value="3">Aisle 3</option></select><button id="fly">Walk the aisle</button><button id="stop">Stop</button></div>
+<h2>Colour by</h2>
+<div class="row"><label class="opt"><input type="radio" name="mode" value="class" checked>Fast / slow goods</label><label class="opt"><input type="radio" name="mode" value="bbd">Best-before date</label></div>
+<div class="legend" id="legend" style="margin-top:8px"></div>
+<h2>Show</h2>
+<div class="row" id="clsrow"></div>
+<label class="opt" style="margin-top:6px"><input type="checkbox" id="zone" checked>Show fast and slow zones on the floor</label>
+<label class="opt" style="margin-top:4px"><input type="checkbox" id="names" checked>Show product names on the shelves (when close)</label>
+<label class="opt" style="margin-top:4px"><input type="checkbox" id="allnames">Show every name (zoom in first)</label>
+<h2>Levels shown</h2>
+<div class="row" id="lvlrow"></div>
+<h2>Find a product</h2>
+<input type="text" id="q" placeholder="Name or code, e.g. rice or 100199">
+<div id="res"></div>
+<h2>Selected bay</h2>
+<div id="info"><span class="mut">Click a bay, or hover a pallet to see its name.</span></div>
+<p class="note">Shelves per rack: A 5, B 6, C 6, D 5, E 6, F 5. Aisle 1 is served by racks A and B, aisle 2 by C and D, aisle 3 by E and F. Every shelf has a QR label: rack letter, bay number, level (C-07-3 = rack C, bay 7, level 3). Pallets are placed by best-before date: earliest lowest and on the left, latest highest and on the right (switch Colour by to Best-before date).</p>
+</div>
+<div id="view"><canvas id="c"></canvas><div id="scanfx"><i></i><i></i><i></i><i></i><b></b></div><div id="float"></div><div id="tip"></div><div id="hint">Loading 3D view...</div></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+var D={"levels":[5,6,6,5,6,5],"asof":"2026-10-06","bays":[{"c":"BO","x":0,"h":0,"r":0,"nl":5,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["100578 Bamboo Chopstick 21cm (Red)","101514 5mm Tiger Tiger Rice Stick","100266 CFJ104 Lv Hong SweetPotato Vermicelli BNGD 4"],"q":61.9,"a":"07/27","d":289,"b":3,"f":1.0,"h":1.37},{"p":["100266 CFJ104 Lv Hong SweetPotato Vermicelli BNGD 4","101633 4OZ Satco Sauce Cups RDWE 800PC"],"q":17.9,"a":"07/27","d":289,"b":3,"f":0.4,"h":0.95}]},{"k":"Slow","r":"Slow stock","s":[{"p":["100476 Large OKF Aloe Vera Drink BNGN 1.5Ltr * 12","101433 FX Pak Choi Wheat Flour WEWE 20KG * 1"],"q":49.3,"a":"02/27","d":118,"b":2,"f":1.0,"h":1.34},{"p":["101433 FX Pak Choi Wheat Flour WEWE 20KG * 1","100413 FR1-002 East Asia Garlic Flakes BNWE 1KG * 2","101388 Large White Tower Tomato Paste - 4 x 4.55"],"q":45.9,"a":"02/27","d":118,"b":2,"f":0.99,"h":0.93}]},{"k":"Slow","r":"Slow stock","s":[{"p":["102437 C650 Fuji Brand Plain Containers Premium"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.31},{"p":["102437 C650 Fuji Brand Plain Containers Premium"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.31}]},{"k":"Slow","r":"Reserve","s":[{"p":["102437 C650 Fuji Brand Plain Containers Premium"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.31},{"p":["102437 C650 Fuji Brand Plain Containers Premium"],"q":22.0,"a":"","d":null,"b":6,"f":0.55,"h":0.96}]},{"k":"Stalled","r":"Slow stock","s":[{"p":["101031 Large Blue Powder Free Vinyl Gloves 100","101378 Gluten Free LKK Light Soya Sauce - 250ml*12","101515 10mm Tiger Tiger Rice Stick","+1 more"],"q":41.5,"a":"07/27","d":268,"b":3,"f":0.56,"h":0.99},0]}]},{"c":"BP","x":0,"h":0,"r":1,"nl":5,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["102628 Shaoxing Wine"],"q":60.0,"a":"06/31","d":1728,"b":5,"f":1.0,"h":1.34},{"p":["102628 Shaoxing Wine"],"q":60.0,"a":"06/31","d":1728,"b":5,"f":1.0,"h":1.34}]},{"k":"Medium","r":"Reserve","s":[{"p":["102628 Shaoxing Wine"],"q":60.0,"a":"06/31","d":1728,"b":5,"f":1.0,"h":1.34},{"p":["102628 Shaoxing Wine"],"q":60.0,"a":"06/31","d":1728,"b":5,"f":1.0,"h":1.34}]},{"k":"Medium","r":"Reserve","s":[{"p":["102628 Shaoxing Wine"],"q":48.5,"a":"06/31","d":1728,"b":5,"f":0.81,"h":1.19},0]},0,{"k":"Not moving","r":"Slow stock","s":[{"p":["102259 Wasabi Powder (Product of China) 1kg","102261 Danisa Butter Cookies 375g (Halal)","102262 Kool Pho Beef Flavour Rice Noodles (Pack of ","+1 more"],"q":12.2,"a":"12/26","d":63,"b":1,"f":0.2,"h":0.68},0]}]},{"c":"BQ","x":0,"h":0,"r":2,"nl":5,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["101909 Small Tin Aroy-D Coconut Milk 400ml * 24"],"q":93.0,"a":"03/29","d":884,"b":5,"f":1.0,"h":1.07},{"p":["101909 Small Tin Aroy-D Coconut Milk 400ml * 24","100361 8L DARK Pearl River DARK Soy Sauce BN","100371 Lea & Perrins Worcester Sauce BNOE 4 Ltr *2"],"q":71.0,"a":"01/28","d":482,"b":4,"f":0.98,"h":1.06}]},0,0,0,0]},{"c":"BR","x":0,"h":0,"r":3,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100466 HS1-001 Chinkiang Zhenjiang Vinegar GNYW 500","100286 Kang Mei Prawn Crackers BN"],"q":98.5,"a":"02/28","d":485,"b":4,"f":1.0,"h":1.2},{"p":["100286 Kang Mei Prawn Crackers BN","100320 CLH002 CLH Broad Bean Sauce BNRD Hong You Do","100337 XQ1-001 Xin Quan Pickled Veg (Yu suan Cai)"],"q":73.2,"a":"04/27","d":187,"b":3,"f":0.97,"h":1.0}]},0,0,0,0]},{"c":"BS","x":0,"h":0,"r":4,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100233 6 x 3005g Golden Buffalo Pineapple Pieces","100253 No.2 Lucky Boat Noodles BN Thin Crispy"],"q":59.4,"a":"05/27","d":228,"b":3,"f":1.0,"h":1.2},{"p":["100253 No.2 Lucky Boat Noodles BN Thin Crispy","102310 Powder Deepio Degreaser Powder BE"],"q":99.6,"a":"09/27","d":350,"b":3,"f":1.0,"h":1.47}]},0,0,0,0]},{"c":"BT","x":0,"h":0,"r":5,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100458 1kg Britannia Granulated Sugar"],"q":60.0,"a":"","d":null,"b":6,"f":1.0,"h":1.24},{"p":["100458 1kg Britannia Granulated Sugar"],"q":60.0,"a":"09/28","d":725,"b":5,"f":1.0,"h":1.24}]},{"k":"Fast","r":"Reserve","s":[{"p":["100458 1kg Britannia Granulated Sugar"],"q":24.9,"a":"09/28","d":725,"b":5,"f":0.42,"h":0.81},0]},0,0,0]},{"c":"BU","x":0,"h":0,"r":6,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100281 Sack Avebe Potato Starch GN"],"q":36.0,"a":"03/31","d":1637,"b":5,"f":1.0,"h":0.95},{"p":["100281 Sack Avebe Potato Starch GN"],"q":36.0,"a":"03/31","d":1637,"b":5,"f":1.0,"h":0.95}]},{"k":"Fast","r":"Reserve","s":[{"p":["100281 Sack Avebe Potato Starch GN"],"q":36.0,"a":"04/31","d":1649,"b":5,"f":1.0,"h":0.95},{"p":["100281 Sack Avebe Potato Starch GN"],"q":36.0,"a":"04/31","d":1649,"b":5,"f":1.0,"h":0.95}]},{"k":"Fast","r":"Reserve","s":[{"p":["100281 Sack Avebe Potato Starch GN"],"q":36.0,"a":"04/31","d":1649,"b":5,"f":1.0,"h":0.95},{"p":["100281 Sack Avebe Potato Starch GN"],"q":36.0,"a":"04/31","d":1649,"b":5,"f":1.0,"h":0.95}]},{"k":"Fast","r":"Reserve","s":[{"p":["100281 Sack Avebe Potato Starch GN"],"q":4.0,"a":"04/31","d":1649,"b":5,"f":0.2,"h":0.49},0]},0]},{"c":"BV","x":0,"h":1,"r":0,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100554 C650 Pink Apple Plastic Container+Lids BEWE "],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.49},{"p":["100554 C650 Pink Apple Plastic Container+Lids BEWE ","100485 1.5L Coca Cola Large Bottles 6*1.5L","100297 Plastic Bottle HP Brown Sauce 4L * 2","+1 more"],"q":71.3,"a":"01/27","d":112,"b":2,"f":0.91,"h":1.41}]},0,0,0,0]},{"c":"BW","x":0,"h":1,"r":1,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["102373 No.6a Tiger Foil Container Super Heavy 500PC"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.64},{"p":["102373 No.6a Tiger Foil Container Super Heavy 500PC"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.64}]},{"k":"Fast","r":"Reserve","s":[{"p":["102373 No.6a Tiger Foil Container Super Heavy 500PC"],"q":17.0,"a":"","d":null,"b":6,"f":0.42,"h":1.08},0]},0,0,0]},{"c":"BX","x":0,"h":1,"r":2,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100526 Blue 7.5\" Half Moon Greaseproof Chip Bag WE "],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.26},{"p":["100526 Blue 7.5\" Half Moon Greaseproof Chip Bag WE ","100432 Plastic Bucket Famos Malaysian Curry Powder ","100315 Glass Bottle Squid Fish Sauce WEGN 725ml *12","+1 more"],"q":62.9,"a":"06/27","d":267,"b":3,"f":0.97,"h":1.24}]},0,0,0,0]},{"c":"BY","x":0,"h":1,"r":3,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100555 T1100 Satco Round Container BEWE 150PC"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.21},{"p":["100555 T1100 Satco Round Container BEWE 150PC"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.21}]},{"k":"Fast","r":"Reserve","s":[{"p":["100555 T1100 Satco Round Container BEWE 150PC"],"q":7.0,"a":"","d":null,"b":6,"f":0.2,"h":0.63},0]},0,0,0]},{"c":"BZ","x":0,"h":1,"r":4,"nl":5,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["100300 Glass Bottle LKK Chilli Bean Sauce RDRD 368g"],"q":100.0,"a":"11/28","d":757,"b":5,"f":1.0,"h":1.51},{"p":["100300 Glass Bottle LKK Chilli Bean Sauce RDRD 368g","100408 Drum Eastern Star Curry Powder GN 10KG"],"q":96.9,"a":"04/29","d":915,"b":5,"f":0.99,"h":1.49}]},0,0,0,0]},{"c":"CA","x":0,"h":1,"r":5,"nl":5,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["101908 Large Tin Aroy-D Coconut Milk 2.9KG * 6"],"q":51.0,"a":"01/29","d":836,"b":5,"f":1.0,"h":1.36},{"p":["101908 Large Tin Aroy-D Coconut Milk 2.9KG * 6","101868 Large Tin Amoy Hoi Sin Sauce BN 2.3kg*6"],"q":53.3,"a":"08/28","d":695,"b":5,"f":0.95,"h":1.32}]},{"k":"Not moving","r":"Slow stock","s":[{"p":["100219 Slice Golden Swan Water Chestnut Slice BN"],"q":50.0,"a":"04/29","d":923,"b":5,"f":1.0,"h":1.46},{"p":["100219 Slice Golden Swan Water Chestnut Slice BN","102459 WZH Sesame Paste with Peanut Butter 2.5kg*6"],"q":16.0,"a":"09/27","d":334,"b":3,"f":0.29,"h":0.84}]},0,0,{"k":"Not moving","r":"Slow stock","s":[{"p":["102497 LKK Lemon Chicken Stir Fry Sauce","102508 VEGAN Mae Ploy Chilli Paste In Oil","102533 Chang Pickled Garlic","+1 more"],"q":24.0,"a":"04/27","d":177,"b":2,"f":0.25,"h":0.75},0]}]},{"c":"BB","x":1,"h":0,"r":0,"nl":6,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["102536 KaiJae Jasmine Rice (BLUE)"],"q":90.0,"a":"10/27","d":368,"b":4,"f":1.0,"h":1.45},{"p":["102536 KaiJae Jasmine Rice (BLUE)","100410 Glass Bottle Ferns Curry Paste Mild GNOE 380"],"q":90.0,"a":"10/27","d":368,"b":4,"f":0.96,"h":1.42}]},{"k":"Slow","r":"Slow stock","s":[{"p":["101848 EA-132 East Asia Black Sesame Seeds 50*350g","102526 Royal Crown Fruit Cocktail","100340 CX2-002 East Asia Mustard Green (Tian Mei Ca","+1 more"],"q":33.8,"a":"09/27","d":345,"b":3,"f":0.61,"h":1.0},0]},{"k":"Not moving","r":"Slow stock","s":[{"p":["102487 White Centrefeed Roll 6*2ply Extra Strong"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.24},{"p":["102487 White Centrefeed Roll 6*2ply Extra Strong"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.24}]},{"k":"Not moving","r":"Reserve","s":[{"p":["102487 White Centrefeed Roll 6*2ply Extra Strong"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.24},{"p":["102487 White Centrefeed Roll 6*2ply Extra Strong"],"q":31.0,"a":"","d":null,"b":6,"f":0.78,"h":1.07}]},{"k":"Not moving","r":"Slow stock","s":[{"p":["100427 JHL-006 JHL Kelp Knots BNGN 50G * 50","102326 CHANG Nucleated Glass 6pc","102401 Kingstar Beer Passionfruit 1L*6 bottles","+1 more"],"q":23.3,"a":"11/26","d":30,"b":0,"f":0.39,"h":0.71},0]},{"k":"Slow","r":"Slow stock","s":[{"p":["101682 Small Bottle Chang Beer - 320ml * 24","101729 Sesame Oil HK Nissin Demae Ramen Noodles","100448 Lobo Satay Seasoning Mix BNYW 100G * 24","+1 more"],"q":90.4,"a":"02/27","d":135,"b":2,"f":1.0,"h":1.6},{"p":["100256 5mm Red Dragon Rice Stick OE"],"q":11.5,"a":"06/28","d":604,"b":5,"f":0.2,"h":0.71}]}]},{"c":"BC","x":1,"h":0,"r":1,"nl":6,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["100374 Tin Amoy Crush Yellow Bean BNWE 450G * 12"],"q":100.0,"a":"03/28","d":542,"b":5,"f":1.0,"h":1.31},{"p":["100374 Tin Amoy Crush Yellow Bean BNWE 450G * 12","102109 IP 10 - Hot Box 10 Containers"],"q":79.0,"a":"05/29","d":967,"b":5,"f":0.95,"h":1.27}]},{"k":"Not moving","r":"Slow stock","s":[{"p":["101173 SLICED Golden Swan Bamboo Shoots BN 2950g"],"q":50.0,"a":"10/27","d":360,"b":3,"f":1.0,"h":1.16},{"p":["101173 SLICED Golden Swan Bamboo Shoots BN 2950g"],"q":5.0,"a":"10/27","d":360,"b":3,"f":0.2,"h":0.61}]},{"k":"Not moving","r":"Slow stock","s":[{"p":["102593 Golden Swan Prawn Crackers Vietnamese"],"q":75.0,"a":"07/28","d":653,"b":5,"f":1.0,"h":1.62},{"p":["102593 Golden Swan Prawn Crackers Vietnamese"],"q":75.0,"a":"07/28","d":653,"b":5,"f":1.0,"h":1.62}]},{"k":"Not moving","r":"Reserve","s":[{"p":["102593 Golden Swan Prawn Crackers Vietnamese"],"q":75.0,"a":"07/28","d":653,"b":5,"f":1.0,"h":1.62},{"p":["102593 Golden Swan Prawn Crackers Vietnamese"],"q":75.0,"a":"07/28","d":653,"b":5,"f":1.0,"h":1.62}]},{"k":"Not moving","r":"Reserve","s":[{"p":["102593 Golden Swan Prawn Crackers Vietnamese"],"q":75.0,"a":"07/28","d":653,"b":5,"f":1.0,"h":1.62},{"p":["102593 Golden Swan Prawn Crackers Vietnamese","102608 TPR LKK Japanese Style Soy Sauce 1000ml","102609 TPR LKK Gyoza Sauce 1L","+1 more"],"q":28.0,"a":"05/27","d":224,"b":3,"f":0.37,"h":1.01}]},{"k":"Slow","r":"Slow stock","s":[{"p":["102111 8.5\" Stronghold Brown Kraft Paper Bags","100263 HL1-002 East Asia Sweet Potato Verm (Thick) ","100316 Plastic Bottle Tiparos Fish Sauce BN 700g * ","+1 more"],"q":37.8,"a":"10/26","d":25,"b":0,"f":0.59,"h":0.72},0]}]},{"c":"BD","x":1,"h":0,"r":2,"nl":6,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["100527 Red 8.5\" Half Moon Greaseproof Chip Bag WE 1"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":0.98},{"p":["100527 Red 8.5\" Half Moon Greaseproof Chip Bag WE 1","102236 No.1 Happy Dragon Noodles - Thick","100338 YQ-001 Fish Well Preserved Mustard Stem","+1 more"],"q":78.0,"a":"05/27","d":235,"b":3,"f":0.99,"h":0.97}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["100452 EA125 East Asia Green Sichuan Pepper BNYW 50","100470 Glass Bottle Tung Chun Red Vinegar BN 500ML ","100474 7UP Cans 24*330ml","+1 more"],"q":31.2,"a":"08/27","d":329,"b":3,"f":0.57,"h":1.08},0]}]},{"c":"BE","x":1,"h":0,"r":3,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100346 Glass Bottle Jimmys Satay Sauce BNGN 360G * "],"q":100.0,"a":"01/28","d":452,"b":4,"f":1.0,"h":1.08},{"p":["100346 Glass Bottle Jimmys Satay Sauce BNGN 360G * ","100241 EA-001 East Asia Beancurd Sticks BNGN 200G *","101749 MAE PLOY - Chilli Paste In Oil"],"q":97.1,"a":"07/27","d":298,"b":3,"f":1.0,"h":1.08}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["100606 13\"KING Heavy Wok With Lip","101259 White Rice Vinegar","101396 Healthy Boy Sriracha Chilli Sauce 700ml","+1 more"],"q":43.5,"a":"05/27","d":227,"b":3,"f":1.0,"h":1.6},{"p":["101418 Prawn Cracker RED Tape 9mm (6 rolls)"],"q":0.3,"a":"","d":null,"b":6,"f":0.2,"h":0.77}]}]},{"c":"BF","x":1,"h":0,"r":4,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["101481 6 x 2L OH Blended Sesame Oil"],"q":75.0,"a":"03/28","d":527,"b":4,"f":1.0,"h":1.43},{"p":["101481 6 x 2L OH Blended Sesame Oil","100467 White Sarsons Distilled Vinegar WE 5L x 2","100310 Pride Creamed Coconut 198g*40"],"q":89.2,"a":"05/27","d":237,"b":3,"f":0.99,"h":1.42}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["101354 Bon Chef Panko Bread Crumbs1kg","101825 Yeo's Ezy Cook Noodle 400G * 12","101918 Wooden Fork (160mm/6.3\")","+1 more"],"q":44.2,"a":"01/27","d":91,"b":2,"f":0.62,"h":0.82},0]}]},{"c":"BG","x":1,"h":0,"r":5,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["101525 Garden Fortune Cookie - 300*7g"],"q":40.0,"a":"05/27","d":236,"b":3,"f":1.0,"h":1.58},{"p":["101525 Garden Fortune Cookie - 300*7g"],"q":40.0,"a":"05/27","d":236,"b":3,"f":1.0,"h":1.58}]},{"k":"Fast","r":"Reserve","s":[{"p":["101525 Garden Fortune Cookie - 300*7g"],"q":33.0,"a":"07/27","d":297,"b":3,"f":0.82,"h":1.41},0]},0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["102558 Yeo's Salted Soy Beans","102564 Zheng Feng Red Sichuan Pepper 100g","102571 Lemon Dressing 400ml*24","+1 more"],"q":32.8,"a":"03/27","d":175,"b":2,"f":0.33,"h":0.69},0]}]},{"c":"BH","x":1,"h":0,"r":6,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["101863 SOP Vegetable Oil 20Ltr"],"q":45.0,"a":"02/28","d":510,"b":4,"f":1.0,"h":1.5},{"p":["101863 SOP Vegetable Oil 20Ltr"],"q":45.0,"a":"02/28","d":510,"b":4,"f":1.0,"h":1.5}]},{"k":"Fast","r":"Reserve","s":[{"p":["101863 SOP Vegetable Oil 20Ltr"],"q":45.0,"a":"02/28","d":510,"b":4,"f":1.0,"h":1.5},{"p":["101863 SOP Vegetable Oil 20Ltr"],"q":45.0,"a":"05/28","d":600,"b":5,"f":1.0,"h":1.5}]},{"k":"Fast","r":"Reserve","s":[{"p":["101863 SOP Vegetable Oil 20Ltr"],"q":45.0,"a":"05/28","d":600,"b":5,"f":1.0,"h":1.5},{"p":["101863 SOP Vegetable Oil 20Ltr"],"q":11.0,"a":"05/28","d":600,"b":5,"f":0.24,"h":0.82}]},0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["102485 12\" Bamboo Handle Stainless Steel Skimmer (K","102563 Sanam Tandoori Masala","102569 Maepranom Shrimp Paste","+1 more"],"q":22.0,"a":"02/27","d":137,"b":2,"f":0.33,"h":0.63},0]}]},{"c":"BI","x":1,"h":1,"r":0,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100199 20kg Golden Buffalo Rice WE Long Grain"],"q":45.0,"a":"05/28","d":573,"b":5,"f":1.0,"h":1.19},{"p":["100199 20kg Golden Buffalo Rice WE Long Grain"],"q":45.0,"a":"07/28","d":634,"b":5,"f":1.0,"h":1.19}]},{"k":"Fast","r":"Reserve","s":[{"p":["100199 20kg Golden Buffalo Rice WE Long Grain"],"q":45.0,"a":"07/28","d":634,"b":5,"f":1.0,"h":1.19},{"p":["100199 20kg Golden Buffalo Rice WE Long Grain"],"q":45.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":1.19}]},{"k":"Fast","r":"Reserve","s":[{"p":["100199 20kg Golden Buffalo Rice WE Long Grain"],"q":23.0,"a":"07/28","d":664,"b":5,"f":0.51,"h":0.84},0]},0,0,{"k":"Stalled","r":"Slow stock","s":[{"p":["102581 10\" Classic Italian Pizza Box","102582 12\" Classic Italian Pizza Box","102642 Coriander Seeds 3.5kg","+1 more"],"q":13.3,"a":"10/27","d":384,"b":4,"f":0.2,"h":0.68},0]}]},{"c":"BJ","x":1,"h":1,"r":1,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100200 10kg Green Dragon Rice GN Thai Fragrant"],"q":90.0,"a":"01/28","d":477,"b":4,"f":1.0,"h":0.9},{"p":["100200 10kg Green Dragon Rice GN Thai Fragrant"],"q":90.0,"a":"01/28","d":477,"b":4,"f":1.0,"h":0.9}]},{"k":"Fast","r":"Reserve","s":[{"p":["100200 10kg Green Dragon Rice GN Thai Fragrant"],"q":90.0,"a":"01/28","d":477,"b":4,"f":1.0,"h":0.9},{"p":["100200 10kg Green Dragon Rice GN Thai Fragrant"],"q":49.0,"a":"02/28","d":507,"b":4,"f":0.54,"h":0.66}]},0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["102613 TPR LKK Sweet & Sour Sauce 2.3kg","102616 TPR LKK Peking Style Sauce 2.49kg","102618 TPR LKK Hoisin Sauce 2.45kg","+1 more"],"q":24.0,"a":"01/27","d":114,"b":2,"f":0.24,"h":0.62},0]}]},{"c":"BK","x":1,"h":1,"r":2,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["101318 Tin Golden Swan Baby Corn Cobs - 425g * 24"],"q":88.0,"a":"01/29","d":829,"b":5,"f":1.0,"h":1.63},{"p":["101318 Tin Golden Swan Baby Corn Cobs - 425g * 24","100225 Stokely's Cream Style Corn","100213 STRIPS China Chef Bamboo Shoots BN 2950g"],"q":83.7,"a":"08/28","d":673,"b":5,"f":0.99,"h":1.62}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["102352 King Corn Cream Style Corn","102402 Kingstar Beer Jasmine Tea 1L*6 bottles","102454 VEGAN Mae Ploy Green Curry Paste","+1 more"],"q":31.0,"a":"03/27","d":151,"b":2,"f":0.32,"h":0.54},0]}]},{"c":"BL","x":1,"h":1,"r":3,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100603 Preema Yellow & Green Sponge YWGN 6pc"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":0.95},{"p":["100603 Preema Yellow & Green Sponge YWGN 6pc","100358 DARK 8L LKK Premium DARK Soy Sauce","101740 Large Bottle Chang Beer - 620 ml * 12","+1 more"],"q":52.2,"a":"04/27","d":185,"b":3,"f":0.96,"h":0.93}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["101886 NITTAYA Red Curry Paste","101893 Vegetarian MLS Mock Duck","101933 L CamRice Laifen Rice Vermicelli (Purple)"],"q":74.2,"a":"06/27","d":264,"b":3,"f":1.0,"h":0.91},{"p":["101933 L CamRice Laifen Rice Vermicelli (Purple)","102075 Vegetarian MLS Mock Chicken"],"q":28.2,"a":"07/27","d":268,"b":3,"f":0.39,"h":0.6}]}]},{"c":"BM","x":1,"h":1,"r":4,"nl":6,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["100561 12oz Pink Apple Sauce Cup & Lids BEWE 150pc","102567 Im a Natural Vegetable SB Oil 2*10L"],"q":40.4,"a":"08/28","d":689,"b":5,"f":1.0,"h":0.99},{"p":["102567 Im a Natural Vegetable SB Oil 2*10L","100481 Glass Bottle Tiger Beer 330ml * 24"],"q":63.6,"a":"11/26","d":55,"b":1,"f":0.99,"h":1.56}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["100562 12OZ Satco Sauce Cups GNWE 150PC","100571 Prowrap Aluminium Foil WESR 75M * 450mm","100613 Stockinette Rolls/Cloth GY 800G * 1"],"q":64.0,"a":"","d":null,"b":6,"f":1.0,"h":1.45},{"p":["100613 Stockinette Rolls/Cloth GY 800G * 1","101027 Golden Swan Lychee in Syrup"],"q":44.0,"a":"06/28","d":627,"b":5,"f":0.55,"h":0.79}]}]},{"c":"BN","x":1,"h":1,"r":5,"nl":6,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["100375 Tin LKK Crush Yellow Bean Sauce BNWE 470G*12"],"q":100.0,"a":"04/27","d":178,"b":2,"f":1.0,"h":1.02},{"p":["100375 Tin LKK Crush Yellow Bean Sauce BNWE 470G*12","100600 ELCO Soda Crystal WEWE 10kg","101768 Chang Concentrated Tamarind","+1 more"],"q":77.2,"a":"02/28","d":507,"b":4,"f":0.82,"h":0.91}]},0,0,0,{"k":"Not moving","r":"Slow stock","s":[{"p":["102611 TPR LKK Chinese Style Honey BBQ Marinade 2.6","102612 TPR LKK Vegetarian Stir Fry Sauce 2.3kg","102620 TPR LKK Black Bean Sauce 2.4kg","+1 more"],"q":13.0,"a":"04/27","d":193,"b":3,"f":0.2,"h":0.5},0]},{"k":"Slow","r":"Slow stock","s":[{"p":["100332 LKK Mushroom Vegetarian Stir fry Sauce","100333 Smooth Duerr's Peanut Butter Smooth BN 340*6","100414 EA-080 East Asia Spice Ginger Powder BNYW 25","+1 more"],"q":53.1,"a":"05/27","d":207,"b":3,"f":0.91,"h":1.27},0]}]},{"c":"AN","x":2,"h":0,"r":0,"nl":6,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94}]},{"k":"Medium","r":"Reserve","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94}]},{"k":"Medium","r":"Reserve","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94}]},{"k":"Medium","r":"Reserve","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94}]},{"k":"Medium","r":"Reserve","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94}]},{"k":"Medium","r":"Reserve","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94}]}]},{"c":"AO","x":2,"h":0,"r":1,"nl":6,"L":[{"k":"Medium","r":"Reserve","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94}]},{"k":"Medium","r":"Reserve","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94}]},{"k":"Medium","r":"Reserve","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94}]},{"k":"Medium","r":"Reserve","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94}]},{"k":"Medium","r":"Reserve","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94}]},{"k":"Medium","r":"Reserve","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94}]}]},{"c":"AP","x":2,"h":0,"r":2,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100596 W90 Preema Scourers GNSR 10pc Heavy Duty","100574 Rainbow Diamond BLUE 10\"x12\" Prawn Cracker B"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.46},{"p":["100574 Rainbow Diamond BLUE 10\"x12\" Prawn Cracker B","101856 Hengs Fried Shallots","102330 Healthy Boy Seasoning Sauce Green Cap 700ml"],"q":54.2,"a":"10/27","d":383,"b":4,"f":0.98,"h":1.0}]},{"k":"Medium","r":"Reserve","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94}]},{"k":"Medium","r":"Reserve","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94}]},{"k":"Medium","r":"Reserve","s":[{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":40.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":0.94},{"p":["102598 22kg Double Phoenix Rice (20kg+10% extra) US"],"q":3.0,"a":"07/28","d":664,"b":5,"f":0.2,"h":0.49}]},0,{"k":"Slow","r":"Slow stock","s":[{"p":["100264 HL1-003 East Asia Sweet Potato Verm - Thicke","100309 CGF201C ChuanLaoHui Pickled Cowpea BNYW","100322 YES! Haday Soybean Sauce BNYW 340G*15","+1 more"],"q":25.0,"a":"02/27","d":144,"b":2,"f":0.26,"h":0.74},0]}]},{"c":"AQ","x":2,"h":0,"r":3,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["101857 Tin Amoy Hoi Sin Sauce BN 482g*12"],"q":100.0,"a":"10/28","d":726,"b":5,"f":1.0,"h":0.97},{"p":["101857 Tin Amoy Hoi Sin Sauce BN 482g*12","100319 Tin LKK Hoi Sin Sauce BNWE 500G * 12","101073 FLCK Rice Flour BNPK 450g * 32","+1 more"],"q":97.1,"a":"01/27","d":114,"b":2,"f":0.99,"h":0.96}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["100308 Mee Chun Chu Hou Braising Sauce","100364 Glass Bottle LKK Spare Ribs Sauce RDYW 397G*","100376 Bay leaves 1kg","+1 more"],"q":22.0,"a":"09/27","d":352,"b":3,"f":0.43,"h":0.96},0]}]},{"c":"AR","x":2,"h":0,"r":4,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100577 Blue Centrefeed Roll 6*2ply Extra Strong"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":0.9},{"p":["100577 Blue Centrefeed Roll 6*2ply Extra Strong"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":0.9}]},{"k":"Fast","r":"Reserve","s":[{"p":["100577 Blue Centrefeed Roll 6*2ply Extra Strong"],"q":31.0,"a":"","d":null,"b":6,"f":0.78,"h":0.78},0]},0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["102058 Yeo's Hot Bean Sauce","102072 Pepsi (Cans)","102095 Chicken HK Nissin Demae Ramen Noodles","+1 more"],"q":9.2,"a":"12/26","d":74,"b":1,"f":0.2,"h":0.59},0]}]},{"c":"AS","x":2,"h":0,"r":5,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100434 Ajinomoto MSG WEWE 22.68KG"],"q":39.0,"a":"12/30","d":1517,"b":5,"f":1.0,"h":1.37},{"p":["100434 Ajinomoto MSG WEWE 22.68KG"],"q":39.0,"a":"12/30","d":1517,"b":5,"f":1.0,"h":1.37}]},{"k":"Fast","r":"Reserve","s":[{"p":["100434 Ajinomoto MSG WEWE 22.68KG"],"q":39.0,"a":"12/30","d":1517,"b":5,"f":1.0,"h":1.37},{"p":["100434 Ajinomoto MSG WEWE 22.68KG"],"q":39.0,"a":"12/30","d":1517,"b":5,"f":1.0,"h":1.37}]},{"k":"Fast","r":"Reserve","s":[{"p":["100434 Ajinomoto MSG WEWE 22.68KG"],"q":39.0,"a":"12/30","d":1517,"b":5,"f":1.0,"h":1.37},{"p":["100434 Ajinomoto MSG WEWE 22.68KG"],"q":39.0,"a":"12/30","d":1517,"b":5,"f":1.0,"h":1.37}]},{"k":"Fast","r":"Reserve","s":[{"p":["100434 Ajinomoto MSG WEWE 22.68KG"],"q":1.0,"a":"12/30","d":1517,"b":5,"f":0.2,"h":0.71},0]},0,{"k":"Slow","r":"Slow stock","s":[{"p":["102273 Sum's Canopy Kitchen Degreaser","102416 JFE Yaki Nori Sushi Sheet (Full) 50sht/pk","102432 Sangsom Thai Rum 700ml*12 bottles","+1 more"],"q":3.4,"a":"03/27","d":160,"b":2,"f":0.2,"h":0.54},0]}]},{"c":"AT","x":2,"h":0,"r":6,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100932 Spanish Onions - Class 1s","100616 Large Box Eggs 30 eggs*12 trays UK Lion Stam","100285 Ha Long Bay Prawn Crackers WE Vietnamese"],"q":52.8,"a":"10/26","d":13,"b":0,"f":1.0,"h":1.2},{"p":["100285 Ha Long Bay Prawn Crackers WE Vietnamese","100212 SLICED China Chef Bamboo Shoots BN 2950g"],"q":67.0,"a":"05/28","d":592,"b":5,"f":0.91,"h":1.23}]},0,0,0,0,{"k":"Stalled","r":"Slow stock","s":[{"p":["101869 LargeTin Amoy Crush Yellow Bean BNWE 2.15kg*","102037 White News Wrapping Paper 17 x 20\"","102579 Yeo's Chilli Sauce with Garlic 300ml*12","+1 more"],"q":30.5,"a":"10/27","d":362,"b":3,"f":0.59,"h":0.97},0]}]},{"c":"AU","x":2,"h":1,"r":0,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100252 No.1 Lucky Boat Noodles - Thick"],"q":100.0,"a":"09/27","d":332,"b":3,"f":1.0,"h":1.01},{"p":["100252 No.1 Lucky Boat Noodles - Thick"],"q":100.0,"a":"09/27","d":346,"b":3,"f":1.0,"h":1.01}]},{"k":"Fast","r":"Reserve","s":[{"p":["100252 No.1 Lucky Boat Noodles - Thick"],"q":100.0,"a":"09/27","d":346,"b":3,"f":1.0,"h":1.01},{"p":["100252 No.1 Lucky Boat Noodles - Thick"],"q":100.0,"a":"09/27","d":346,"b":3,"f":1.0,"h":1.01}]},{"k":"Fast","r":"Reserve","s":[{"p":["100252 No.1 Lucky Boat Noodles - Thick"],"q":100.0,"a":"09/27","d":346,"b":3,"f":1.0,"h":1.01},{"p":["100252 No.1 Lucky Boat Noodles - Thick"],"q":100.0,"a":"09/27","d":346,"b":3,"f":1.0,"h":1.01}]},{"k":"Fast","r":"Reserve","s":[{"p":["100252 No.1 Lucky Boat Noodles - Thick"],"q":5.0,"a":"09/27","d":346,"b":3,"f":0.2,"h":0.52},0]},0,{"k":"Stalled","r":"Slow stock","s":[{"p":["100246 CSH107A Nikko Albumen Egg Noodles BN 908 *12","100389 Dried Birdeye Chilli BNRD 1kg","100409 EA-025 East Asia Dried Fennel BNRD 80G * 50","+1 more"],"q":16.5,"a":"06/27","d":245,"b":3,"f":0.2,"h":0.64},0]}]},{"c":"AV","x":2,"h":1,"r":1,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100969 Large Tin ChaoKoh Coconut Milk OE 2.9KG * 6"],"q":51.0,"a":"03/29","d":902,"b":5,"f":1.0,"h":1.11},{"p":["100969 Large Tin ChaoKoh Coconut Milk OE 2.9KG * 6","101937 LG (Medium) Ho Fun 10mm (Kway Teow)","101308 Blue Hong Thong White Glutinous Rice BE","+1 more"],"q":58.8,"a":"11/26","d":27,"b":0,"f":0.98,"h":1.09}]},{"k":"Slow","r":"Slow stock","s":[{"p":["101024 Plastic - Ice Cream Lids Only WE 4L"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.1},{"p":["101024 Plastic - Ice Cream Lids Only WE 4L"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.1}]},{"k":"Slow","r":"Reserve","s":[{"p":["101024 Plastic - Ice Cream Lids Only WE 4L"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.1},{"p":["101024 Plastic - Ice Cream Lids Only WE 4L"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.1}]},{"k":"Slow","r":"Reserve","s":[{"p":["101024 Plastic - Ice Cream Lids Only WE 4L"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.1},{"p":["101024 Plastic - Ice Cream Lids Only WE 4L"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.1}]},{"k":"Slow","r":"Reserve","s":[{"p":["101024 Plastic - Ice Cream Lids Only WE 4L"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.1},{"p":["101024 Plastic - Ice Cream Lids Only WE 4L"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.1}]},{"k":"Slow","r":"Reserve","s":[{"p":["101024 Plastic - Ice Cream Lids Only WE 4L"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.1},{"p":["101024 Plastic - Ice Cream Lids Only WE 4L","102542 Healthy Boy Stir Fry Sauce 700ml","102553 LZH Dried Liqourice Slice 150g","+1 more"],"q":38.0,"a":"12/27","d":430,"b":4,"f":0.91,"h":1.04}]}]},{"c":"AW","x":2,"h":1,"r":2,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100204 20kg Tilda Rice GN Long Grain"],"q":45.0,"a":"07/28","d":664,"b":5,"f":1.0,"h":1.26},{"p":["100204 20kg Tilda Rice GN Long Grain","102351 Kum Lee Garlic Granules 1kg * 20","100999 330ml Coke Zero Cans BK 24 x 330ml","+1 more"],"q":66.5,"a":"01/27","d":88,"b":1,"f":0.99,"h":1.25}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["102275 6 x 2.27 LKK Kum Chun Oyster Sauce","102404 Kingstar Beer Bingtanghulu 1L*6 bottles","102420 14\"KING Heavy Wok With Lip","+1 more"],"q":37.2,"a":"11/26","d":53,"b":1,"f":0.63,"h":0.95},0]}]},{"c":"AX","x":2,"h":1,"r":3,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100234 24 x 830g Golden Buffalo Pineapple Pieces"],"q":45.0,"a":"03/29","d":896,"b":5,"f":1.0,"h":0.91},{"p":["100234 24 x 830g Golden Buffalo Pineapple Pieces","102267 Brown Caesar's Malt Vinegar 5L*2","100380 EA076 East Asia Granule Black Pepper BNRD 11","+1 more"],"q":75.6,"a":"03/28","d":539,"b":4,"f":0.94,"h":0.88}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["100605 13\" QUEEN Light Wok With Lip","100972 Bucket Goldfish Chinese Curry Sauce WE 8kg","101078 HD Seasoning Soy Sauce CHA250B","+1 more"],"q":37.5,"a":"01/27","d":87,"b":1,"f":0.47,"h":0.77},0]}]},{"c":"AY","x":2,"h":1,"r":4,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["102359 8oz Chinese Ocean Sauce Cup & Lids BLWE"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.16},{"p":["102359 8oz Chinese Ocean Sauce Cup & Lids BLWE"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.16}]},{"k":"Fast","r":"Reserve","s":[{"p":["102359 8oz Chinese Ocean Sauce Cup & Lids BLWE"],"q":3.0,"a":"","d":null,"b":6,"f":0.2,"h":0.6},0]},0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["100391 XR1-002 XR Green Chilli In Brine GNGN 2KG * ","100395 CTX202 Tan Tan Xiang Chopped Red Chilli","100417 CSW101B Swan Spicy Hotpot Seasoning BN 300g","+1 more"],"q":15.5,"a":"01/27","d":113,"b":2,"f":0.2,"h":0.49},0]}]},{"c":"AZ","x":2,"h":1,"r":5,"nl":6,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["100369 Small White Tower Tomato Paste BNRD Net850g ","100484 CYS801A YeShu Coconut Juice BEBK 245ml * 24"],"q":84.0,"a":"04/27","d":185,"b":3,"f":1.0,"h":1.24},{"p":["100484 CYS801A YeShu Coconut Juice BEBK 245ml * 24","102237 No.2 Happy Dragon Noodles - Fine","100388 ZKD-039 East Asia Whole Dried Chilli BNWE 1K"],"q":97.8,"a":"04/27","d":185,"b":3,"f":1.0,"h":1.3}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["100299 Glass Bottle Amoy Chilli Sauce RDRD 470g*12","100342 YY-001 YY Shredded Preserved Veg BNGN 300G *","100356 Glass Bottle LKK Soy Sauce For Seafood","+1 more"],"q":25.1,"a":"05/27","d":218,"b":3,"f":0.25,"h":0.57},0]}]},{"c":"BA","x":2,"h":1,"r":6,"nl":6,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["102124 IP 9 - Hot Box 9 Container","100289 Wah Loong Mixed Spices - 227G"],"q":65.5,"a":"10/27","d":389,"b":4,"f":1.0,"h":0.98},{"p":["100289 Wah Loong Mixed Spices - 227G","101506 Tin Nestle Carnation Evaporated Milk 410g*12","101613 1ply 30x28cm Poppies Luncheon Napkins BN"],"q":60.5,"a":"10/27","d":360,"b":3,"f":0.8,"h":0.8}]},{"k":"Slow","r":"Slow stock","s":[{"p":["100535 Ice Cream Tub WEWE 4Ltr"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":0.94},{"p":["100535 Ice Cream Tub WEWE 4Ltr"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":0.94}]},{"k":"Slow","r":"Reserve","s":[{"p":["100535 Ice Cream Tub WEWE 4Ltr"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":0.94},{"p":["100535 Ice Cream Tub WEWE 4Ltr"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":0.94}]},{"k":"Slow","r":"Reserve","s":[{"p":["100535 Ice Cream Tub WEWE 4Ltr"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":0.94},{"p":["100535 Ice Cream Tub WEWE 4Ltr"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":0.94}]},{"k":"Slow","r":"Reserve","s":[{"p":["100535 Ice Cream Tub WEWE 4Ltr"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":0.94},{"p":["100535 Ice Cream Tub WEWE 4Ltr","101039 EA-150 East Asia Dried Goji Berry BNRD 200G ","101285 LKK Premium Oyster Sauce (Squeezy bottle)","+1 more"],"q":40.0,"a":"12/26","d":85,"b":1,"f":0.96,"h":0.91}]},{"k":"Slow","r":"Slow stock","s":[{"p":["100430 King's Curry Powder DRUM 10kg","101055 NONGSHIM Shin Ramen Noodles 5x8x120g","101072 FLCK Glutinous Rice Flour BNGN 450g * 32","+1 more"],"q":44.7,"a":"01/27","d":102,"b":2,"f":0.47,"h":0.69},0]}]},{"c":"Z","x":3,"h":0,"r":0,"nl":5,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["101692 M CamRice Jiang Xi Rice Vermicelli (Orange)","101557 Liquid Fairy Washing Up Liquid BE"],"q":76.1,"a":"04/28","d":572,"b":5,"f":1.0,"h":0.98},{"p":["101557 Liquid Fairy Washing Up Liquid BE"],"q":80.3,"a":"","d":null,"b":6,"f":0.89,"h":1.32}]},{"k":"Stalled","r":"Slow stock","s":[{"p":["102551 Chef Choice Sweet Mango Chutney Drum","102645 Kum Lee Chilli Powder 2kg*10","102039 EA225 Peanut Kernels with Skin 1kg*20","+1 more"],"q":48.5,"a":"07/27","d":268,"b":3,"f":1.0,"h":0.9},{"p":["101751 Tinned Plum Tomatoes"],"q":0.5,"a":"07/28","d":664,"b":5,"f":0.2,"h":0.69}]},0,0,{"k":"Not moving","r":"Slow stock","s":[{"p":["101226 LKK Black Bean Garlic Sauce","101284 Farmers Selection Sweetcorn Kernel WEGN","101683 CHR131 HR Sliced Rice Cake BNWE 454g *24","+1 more"],"q":42.0,"a":"12/26","d":83,"b":1,"f":0.58,"h":0.74},0]}]},{"c":"AA","x":3,"h":0,"r":1,"nl":5,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["100493 310ml WLJ Herbal Tea RD CANS","101059 C1000 Pink Apple Plastic Container & Lids 25"],"q":95.8,"a":"04/27","d":182,"b":3,"f":1.0,"h":0.97},{"p":["101059 C1000 Pink Apple Plastic Container & Lids 25","100235 Plain Plain Flour Green Dragon WE 10","101702 CHR132 HR Hotpot Rice Cake - 450g *20"],"q":48.7,"a":"01/27","d":114,"b":2,"f":0.97,"h":1.55}]},0,0,0,0]},{"c":"AB","x":3,"h":0,"r":2,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["101680 Kintaro Gold Sushi Rice - 10KG"],"q":90.0,"a":"09/27","d":333,"b":3,"f":1.0,"h":1.42},{"p":["101680 Kintaro Gold Sushi Rice - 10KG","100576 Plastic Bottle Domestos Bleach BE 5ltr","100384 Drum W320 CashewNut SR 10KG"],"q":96.0,"a":"09/27","d":339,"b":3,"f":0.99,"h":1.41}]},0,0,0,0]},{"c":"AC","x":3,"h":0,"r":3,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["101759 Purple Hong Thong Thai Hom Mali Rice"],"q":90.0,"a":"03/28","d":520,"b":4,"f":1.0,"h":1.29},{"p":["101759 Purple Hong Thong Thai Hom Mali Rice"],"q":90.0,"a":"03/28","d":534,"b":4,"f":1.0,"h":1.29}]},{"k":"Fast","r":"Reserve","s":[{"p":["101759 Purple Hong Thong Thai Hom Mali Rice"],"q":90.0,"a":"03/28","d":534,"b":4,"f":1.0,"h":1.29},{"p":["101759 Purple Hong Thong Thai Hom Mali Rice"],"q":90.0,"a":"03/28","d":534,"b":4,"f":1.0,"h":1.29}]},{"k":"Fast","r":"Reserve","s":[{"p":["101759 Purple Hong Thong Thai Hom Mali Rice"],"q":47.0,"a":"03/28","d":534,"b":4,"f":0.52,"h":0.92},0]},0,0]},{"c":"AD","x":3,"h":0,"r":4,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100491 330ml FANTA Orange Cans 24 x 330ml"],"q":100.0,"a":"07/27","d":298,"b":3,"f":1.0,"h":1.54},{"p":["100491 330ml FANTA Orange Cans 24 x 330ml","102266 White Caesar's Distilled Malt Vinegar 5L*2","100270 Yeo's Vermicelli BNOE 375 * 25","+1 more"],"q":87.6,"a":"09/27","d":359,"b":3,"f":0.98,"h":1.52}]},0,0,0,0]},{"c":"AE","x":3,"h":0,"r":5,"nl":5,"L":[{"k":"Fast","r":"Reserve","s":[{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07},{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07}]},{"k":"Fast","r":"Reserve","s":[{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07},{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07}]},{"k":"Fast","r":"Reserve","s":[{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07},{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07}]},{"k":"Fast","r":"Reserve","s":[{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07},{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":30.0,"a":"","d":null,"b":6,"f":0.83,"h":0.96}]},0]},{"c":"AF","x":3,"h":0,"r":6,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07},{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07}]},{"k":"Fast","r":"Reserve","s":[{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07},{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07}]},{"k":"Fast","r":"Reserve","s":[{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07},{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07}]},{"k":"Fast","r":"Reserve","s":[{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07},{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07}]},{"k":"Fast","r":"Reserve","s":[{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07},{"p":["100456 25kg British Sugar Granulated Sugar BN 25KG"],"q":36.0,"a":"","d":null,"b":6,"f":1.0,"h":1.07}]}]},{"c":"AG","x":3,"h":1,"r":0,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"04/28","d":550,"b":5,"f":1.0,"h":1.33},{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"04/28","d":550,"b":5,"f":1.0,"h":1.33}]},{"k":"Fast","r":"Reserve","s":[{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"04/28","d":550,"b":5,"f":1.0,"h":1.33},{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"04/28","d":550,"b":5,"f":1.0,"h":1.33}]},{"k":"Fast","r":"Reserve","s":[{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33},{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33}]},{"k":"Fast","r":"Reserve","s":[{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33},{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33}]},{"k":"Fast","r":"Reserve","s":[{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33},{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33}]}]},{"c":"AH","x":3,"h":1,"r":1,"nl":5,"L":[{"k":"Fast","r":"Reserve","s":[{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33},{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33}]},{"k":"Fast","r":"Reserve","s":[{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33},{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33}]},{"k":"Fast","r":"Reserve","s":[{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33},{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33}]},{"k":"Fast","r":"Reserve","s":[{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33},{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33}]},{"k":"Fast","r":"Reserve","s":[{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33},{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33}]}]},{"c":"AI","x":3,"h":1,"r":2,"nl":5,"L":[{"k":"Fast","r":"Reserve","s":[{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33},{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33}]},{"k":"Fast","r":"Reserve","s":[{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33},{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33}]},{"k":"Fast","r":"Reserve","s":[{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33},{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33}]},{"k":"Fast","r":"Reserve","s":[{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":45.0,"a":"09/28","d":704,"b":5,"f":1.0,"h":1.33},{"p":["100209 Pride Rapeseed Oil GN 20Ltr"],"q":3.0,"a":"09/28","d":704,"b":5,"f":0.2,"h":0.69}]},0]},{"c":"AJ","x":3,"h":1,"r":3,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["102399 No.2 Tiger Foil Container Super Heavy 1000PC"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":0.95},{"p":["102399 No.2 Tiger Foil Container Super Heavy 1000PC","100355 LIGHT 8L LKK Premiun LIGHT Soy Sauce","100500 CU552 UNI Assam Milk Tea BNYW 500ml * 15"],"q":63.0,"a":"12/26","d":75,"b":1,"f":0.98,"h":0.94}]},0,0,0,0]},{"c":"AK","x":3,"h":1,"r":4,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["102127 KaiJae Hom Mali Jasmine Rice (RED)"],"q":90.0,"a":"09/27","d":339,"b":3,"f":1.0,"h":1.62},{"p":["102127 KaiJae Hom Mali Jasmine Rice (RED)","100347 Glass Bottle Yeo's Satay Sauce RDRD 250ml*12","101866 24 pack - Palm Sugar - 454g","+1 more"],"q":87.2,"a":"07/27","d":288,"b":3,"f":0.97,"h":1.59}]},0,0,0,0]},{"c":"AL","x":3,"h":1,"r":5,"nl":5,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["100360 8L LIGHT Pearl River LIGHT Soy Sauce BN","100436 N9876 - Orange Colouring Powder OE 500G"],"q":56.4,"a":"04/27","d":188,"b":3,"f":1.0,"h":1.57},{"p":["100436 N9876 - Orange Colouring Powder OE 500G","101512 2OZ Satco Sauce Cups BEWE 800PC","101747 TOM YUM Mae Ploy Tom Yum Paste GN Thai"],"q":72.3,"a":"11/27","d":418,"b":4,"f":0.99,"h":1.53}]},0,0,0,0]},{"c":"AM","x":3,"h":1,"r":6,"nl":5,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["101906 Small Bottle Singha Beer - 330ml * 24"],"q":100.0,"a":"12/26","d":86,"b":1,"f":1.0,"h":1.18},{"p":["101906 Small Bottle Singha Beer - 330ml * 24","101801 Heera Sweetcorn Kernel 340g * 12","100335 Glass Bottle Tung Chun Plum Sauce BNRD 400g "],"q":71.4,"a":"12/26","d":86,"b":1,"f":0.73,"h":0.99}]},{"k":"Not moving","r":"Slow stock","s":[{"p":["102578 Tinned Sliced Mushroom","102594 Middleton Foods Light Batter Mix 16kg","100215 Halves Golden Swan Bamboo Shoots WE 3000g","+1 more"],"q":51.2,"a":"08/27","d":299,"b":3,"f":1.0,"h":1.42},{"p":["100217 STRIPS Golden Swan Bamboo Shoots Strips"],"q":13.8,"a":"08/28","d":680,"b":5,"f":0.28,"h":0.73}]},0,0,{"k":"Not moving","r":"Slow stock","s":[{"p":["101969 10\" XJ-004 Bamboo Skewer BNGN 200PC * 50","102158 Yulong Mountai SweetPotato Vermicelli 300g*3","102240 Vegetarian MLS Fried Gluten Mock Abalone","+1 more"],"q":6.7,"a":"10/26","d":8,"b":0,"f":0.2,"h":0.59},0]}]},{"c":"M","x":4,"h":0,"r":0,"nl":6,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["102538 JHL Sweet Potato Flour 300g"],"q":100.0,"a":"09/27","d":330,"b":3,"f":1.0,"h":1.63},{"p":["102538 JHL Sweet Potato Flour 300g"],"q":90.0,"a":"09/27","d":330,"b":3,"f":0.9,"h":1.53}]},{"k":"Slow","r":"Slow stock","s":[{"p":["102570 Victoria Self Raising Flour","102040 Brown Sarsons Malt Vinegar 20ltr","102157 20kg Golden Orchid Premium Long Grain Rice","+1 more"],"q":16.9,"a":"06/27","d":249,"b":3,"f":0.44,"h":0.97},0]},0,0,{"k":"Not moving","r":"Slow stock","s":[{"p":["100366 CBL101A CongBanLv Bean Paste BNBN Da Jiang","100393 ML1001 MeiLe Chilli Sauce BNRD 1000G * 12","100599 Soda Crystal ( 6 packs)","+1 more"],"q":10.5,"a":"02/27","d":131,"b":2,"f":0.2,"h":0.7},0]},{"k":"Slow","r":"Slow stock","s":[{"p":["100317 335g OK Fruity Sauce","100403 EA-096 East Asia Dried Cumin Seeds BNRD 114G","100406 ZKD-005 East Asia Dried Mushroom","+1 more"],"q":14.7,"a":"06/27","d":247,"b":3,"f":0.2,"h":0.59},0]}]},{"c":"N","x":4,"h":0,"r":1,"nl":6,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["100570 8OZ Satco Sauce Cups PEWE 225PC"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.41},{"p":["100570 8OZ Satco Sauce Cups PEWE 225PC","101220 Preema W60 Scourers 10pc","102516 10mm Sing-Thai Rice Stick RD Halal","+1 more"],"q":47.9,"a":"01/28","d":457,"b":4,"f":0.96,"h":1.37}]},0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["100584 Large Marigold Gloves BE Packs","101719 EA-208 East Asia Dried Black Fungus(Yuner) B","101745 Mae Ploy Yellow Curry Paste","+1 more"],"q":41.4,"a":"06/28","d":633,"b":5,"f":1.0,"h":1.15},{"p":["101850 Preema No.16PY Mopheads with White Plastic S"],"q":8.4,"a":"","d":null,"b":6,"f":0.21,"h":0.77}]},{"k":"Not moving","r":"Slow stock","s":[{"p":["102627 Golden Swan Poku Mushrooms 284g*24","102636 LKK Pure Sesame Oil 1.75L","102637 Dried Cumin Seeds 4kg","+1 more"],"q":8.0,"a":"10/27","d":385,"b":4,"f":0.2,"h":0.85},0]}]},{"c":"O","x":4,"h":0,"r":2,"nl":6,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["100595 Stronghold Bin Bags BNBK 200PC * 118Ltr"],"q":7.0,"a":"","d":null,"b":6,"f":1.0,"h":1.0},{"p":["100595 Stronghold Bin Bags BNBK 200PC * 118Ltr"],"q":7.0,"a":"","d":null,"b":6,"f":1.0,"h":1.0}]},{"k":"Medium","r":"Reserve","s":[{"p":["100595 Stronghold Bin Bags BNBK 200PC * 118Ltr"],"q":7.0,"a":"","d":null,"b":6,"f":1.0,"h":1.0},{"p":["100595 Stronghold Bin Bags BNBK 200PC * 118Ltr"],"q":7.0,"a":"","d":null,"b":6,"f":1.0,"h":1.0}]},{"k":"Medium","r":"Reserve","s":[{"p":["100595 Stronghold Bin Bags BNBK 200PC * 118Ltr"],"q":7.0,"a":"","d":null,"b":6,"f":1.0,"h":1.0},{"p":["100595 Stronghold Bin Bags BNBK 200PC * 118Ltr"],"q":7.0,"a":"","d":null,"b":6,"f":1.0,"h":1.0}]},{"k":"Medium","r":"Reserve","s":[{"p":["100595 Stronghold Bin Bags BNBK 200PC * 118Ltr"],"q":7.0,"a":"","d":null,"b":6,"f":1.0,"h":1.0},{"p":["100595 Stronghold Bin Bags BNBK 200PC * 118Ltr"],"q":7.0,"a":"","d":null,"b":6,"f":1.0,"h":1.0}]},{"k":"Medium","r":"Reserve","s":[{"p":["100595 Stronghold Bin Bags BNBK 200PC * 118Ltr"],"q":7.0,"a":"","d":null,"b":6,"f":1.0,"h":1.0},0]},{"k":"Slow","r":"Slow stock","s":[{"p":["101286 Tin Wei-i Ground Fried Fish","101462 MyPak Heavy Duty Foil Lined Bag 7\" x 9\" x 12","101696 Plastic Flying Goose Sriracha Chilli Sauce G","+1 more"],"q":24.0,"a":"05/27","d":222,"b":3,"f":0.49,"h":0.73},0]}]},{"c":"P","x":4,"h":0,"r":3,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100221 Small Tin Chaokoh Coconut Milk OE 400ml * 24","100533 VT-3A (S2) - Carrier Bag BNWE 1000PC (6*C500"],"q":84.5,"a":"11/28","d":784,"b":5,"f":1.0,"h":1.64},{"p":["100533 VT-3A (S2) - Carrier Bag BNWE 1000PC (6*C500","102071 Healthy Boy Thai Sweet Chilli Sauce"],"q":46.2,"a":"06/28","d":610,"b":5,"f":1.0,"h":1.51}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["102110 7\" Pure Brown Kraft Paper Bags","102115 2L Healthy Boy - Thin Soy Sauce","102155 Maekrua Oyster Sauce","+1 more"],"q":25.8,"a":"11/26","d":52,"b":1,"f":0.39,"h":0.78},0]}]},{"c":"Q","x":4,"h":0,"r":4,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100324 2 x 4.5kg Hammonds Tomato Ketchup BN"],"q":100.0,"a":"04/27","d":198,"b":3,"f":1.0,"h":1.38},{"p":["100324 2 x 4.5kg Hammonds Tomato Ketchup BN","100306 730ml Mae Ploy Sweet Chilli Sauce 920g","102038 EA224 Blanched Peanut Kernels 1kg*20","+1 more"],"q":95.4,"a":"07/27","d":285,"b":3,"f":1.0,"h":1.38}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["102561 Kerrymaid UHT Single Cream","100341 SM-004 YiBin Preserved Veg (Sui Mi Ya Cai) R","100357 Glass Bottle LKK Light Soya Sauce BNRD 500m*","+1 more"],"q":27.0,"a":"04/27","d":204,"b":3,"f":0.35,"h":0.63},0]}]},{"c":"R","x":4,"h":0,"r":5,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100489 330ml DIET Coke Cans SR 24 x 330ml","101126 Master Kong Lemon Ice Tea"],"q":100.0,"a":"01/27","d":117,"b":2,"f":1.0,"h":1.36},{"p":["101126 Master Kong Lemon Ice Tea","100517 Glass Bottle Vamino Soya Milk Drink BNWE","102490 Furong YuanYou Preserved Black Bean & Ginger"],"q":96.5,"a":"04/27","d":203,"b":3,"f":0.97,"h":1.11}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["100293 LGM-001 LGM Black Bean Chilli Sauce BERD 280","100321 LGM-009 LGM Peanut in Chilli Oil RDRD You La","100343 CBJ202A Bai Jia Pickled Cabbage Fish GNGN 30","+1 more"],"q":15.5,"a":"01/27","d":111,"b":2,"f":0.2,"h":0.66},0]}]},{"c":"S","x":4,"h":0,"r":6,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100487 GB Coca Cola Cans 330ml*24"],"q":100.0,"a":"07/27","d":298,"b":3,"f":1.0,"h":1.19},{"p":["100487 GB Coca Cola Cans 330ml*24"],"q":100.0,"a":"07/27","d":298,"b":3,"f":1.0,"h":1.19}]},{"k":"Fast","r":"Reserve","s":[{"p":["100487 GB Coca Cola Cans 330ml*24"],"q":85.0,"a":"07/27","d":298,"b":3,"f":0.85,"h":1.08},0]},0,0,0,{"k":"Stalled","r":"Slow stock","s":[{"p":["100572 Greaseproof Paper BN 450*700mm","100348 WZH-005 WZH Pure Sesame Paste BN","100428 HW-001 Huiwei Dried Laver","+1 more"],"q":27.7,"a":"07/27","d":282,"b":3,"f":0.55,"h":1.15},0]}]},{"c":"T","x":4,"h":1,"r":0,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["102338 Euro Cooking Salt 10kg"],"q":90.0,"a":"","d":null,"b":6,"f":1.0,"h":1.17},{"p":["102338 Euro Cooking Salt 10kg","100279 10 Self Raising Flour Green Dragon WE","101419 2 x 4.4kg Tiger Tiger Tomato Ketchup BN","+1 more"],"q":49.0,"a":"04/27","d":206,"b":3,"f":0.56,"h":0.86}]},0,0,0,0,{"k":"Stalled","r":"Slow stock","s":[{"p":["102540 Healthy Boy Sriracha Chilli Sauce 2000ml","102543 Healthy Boy Mushroom Soy Sauce 700ml","100323 CDL-601A YKOF Instant Shredded Jelly Fish BN","+1 more"],"q":25.0,"a":"04/27","d":191,"b":3,"f":0.32,"h":0.62},0]}]},{"c":"U","x":4,"h":1,"r":1,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["101200 Bottled HAYAT Spring Water - 500ml"],"q":75.0,"a":"01/28","d":473,"b":4,"f":1.0,"h":0.93},{"p":["101200 Bottled HAYAT Spring Water - 500ml","100450 White Sesame Seeds","102491 GS Cassia Lignea Cinnamon Stick"],"q":81.9,"a":"12/26","d":76,"b":1,"f":1.0,"h":0.93}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["100531 VT-1 - Carrier Bag BNWE 1000PC (3* C500/C650","101140 XJ-006 - Wooden Chopsticks (White)","101953 9\" 3 Compartment Clamshell Hot Box"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.33},{"p":["101953 9\" 3 Compartment Clamshell Hot Box","102093 Chang Pickled Turnip"],"q":9.9,"a":"03/27","d":146,"b":2,"f":0.24,"h":0.66}]}]},{"c":"V","x":4,"h":1,"r":2,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100582 Liquid Deepio Washing Up Liquid BE","100218 SLICED China Chef Water Chestnut BN 2950g"],"q":73.1,"a":"07/28","d":649,"b":5,"f":1.0,"h":0.97},{"p":["100218 SLICED China Chef Water Chestnut BN 2950g","100519 330ml Sprite Cans GN 24 x 330ml","100294 Yang Jiang Black Bean & Ginger BNYW 40*400g"],"q":79.3,"a":"08/27","d":329,"b":3,"f":0.99,"h":0.99}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["100556 C750 Pink Apple Plastic Container+Lids BEWE ","100611 32 rolls Cushelle Toilet Paper","101874 MADRAS Mild Curry Powder","+1 more"],"q":26.2,"a":"02/28","d":510,"b":4,"f":0.37,"h":0.57},0]}]},{"c":"W","x":4,"h":1,"r":3,"nl":6,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100532 VT-2 (S1) - Carrier Bag BNWE 1000PC (4* C500"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.04},{"p":["100532 VT-2 (S1) - Carrier Bag BNWE 1000PC (4* C500","101146 Master Kong Green Tea","100446 XNP-002 XNP Rock Sugar (Yellow) BNYW 400g * "],"q":87.0,"a":"04/27","d":183,"b":3,"f":1.0,"h":1.04}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["102475 LX LongKou Vermicelli (LX003) 30*280g","102615 TPR LKK Plum Sauce 2.6kg","102623 Heera Garlic Powder 1kg","+1 more"],"q":18.0,"a":"11/26","d":30,"b":0,"f":0.2,"h":0.48},0]}]},{"c":"X","x":4,"h":1,"r":4,"nl":6,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["100548 No.2 Pink Apple Poly Lids WE HEAVY DUTY"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":0.96},{"p":["100548 No.2 Pink Apple Poly Lids WE HEAVY DUTY","100301 Glass Bottle LKK Chilli Garlic Sauce RDGN 36","100610 6\" XJ-001 Bamboo Skewer BNGN 200PC * 100"],"q":76.5,"a":"01/29","d":827,"b":5,"f":0.97,"h":0.94}]},0,0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["102125 CMK Shanghai Red Beancurd 12*500g","102550 Turmeric Powder Haldi - 5kg *Jumbo*","102576 Black Pepper Coarse","+1 more"],"q":32.7,"a":"04/27","d":206,"b":3,"f":0.61,"h":1.11},0]}]},{"c":"Y","x":4,"h":1,"r":5,"nl":6,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["100580 Prowrap Fresh Cling Film WEWE 300m*450mm"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.54},{"p":["100580 Prowrap Fresh Cling Film WEWE 300m*450mm","100573 Rainbow Diamond GREEN 8\"x10\" Prawn Cracker B","102534 Chang Pickled Sour Mustard Leaves"],"q":39.9,"a":"03/28","d":512,"b":4,"f":0.92,"h":1.47}]},0,0,0,{"k":"Slow","r":"Slow stock","s":[{"p":["101938 LG 28mm Silver Noodles (Mee Tai Bak)","101996 HR Cooked Duck Blood Curds","102029 Hammonds Brown Sauce 4.3kg*2","+1 more"],"q":48.4,"a":"10/26","d":1,"b":0,"f":1.0,"h":1.01},{"p":["102252 No.4 Fan VIP Box 1900ML"],"q":14.8,"a":"","d":null,"b":6,"f":0.37,"h":0.66}]},{"k":"Not moving","r":"Slow stock","s":[{"p":["102639 Chang Thai Glutinous Rice"],"q":90.0,"a":"12/27","d":421,"b":4,"f":1.0,"h":1.19},{"p":["102639 Chang Thai Glutinous Rice","102644 Rio Tropical Cans 330ml*24","102648 1kg bag Cashew Nut"],"q":21.0,"a":"05/27","d":237,"b":3,"f":0.22,"h":0.64}]}]},{"c":"A","x":5,"h":0,"r":0,"nl":5,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["102436 C500 Fuji Brand Plain Containers Premium"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.6},{"p":["102436 C500 Fuji Brand Plain Containers Premium"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.6}]},{"k":"Slow","r":"Slow stock","s":[{"p":["102436 C500 Fuji Brand Plain Containers Premium","102276 Kum Lee Bay leaves","102527 Tinned Chopped Tomatoes","+1 more"],"q":18.1,"a":"04/27","d":206,"b":3,"f":0.37,"h":1.0},0]},{"k":"Not moving","r":"Slow stock","s":[{"p":["102482 2 Ltr Ice Cream Tub"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.17},{"p":["102482 2 Ltr Ice Cream Tub"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.17}]},{"k":"Not moving","r":"Reserve","s":[{"p":["102482 2 Ltr Ice Cream Tub"],"q":20.0,"a":"","d":null,"b":6,"f":0.5,"h":0.82},0]},{"k":"Stalled","r":"Slow stock","s":[{"p":["102431 Phraya Elements Thai Rum 700ml*6 bottles","102507 VEGAN Mae Ploy Panang Curry Paste","102587 Pure Butter Ghee","+1 more"],"q":10.0,"a":"04/27","d":177,"b":2,"f":0.2,"h":0.8},0]}]},{"c":"B","x":5,"h":0,"r":1,"nl":5,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["102031 Take Away Trays - LARGE"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.37},{"p":["102031 Take Away Trays - LARGE","101556 Plastic Bottle Lal Bleach - 5ltr","102182 No.3 Fan VIP Box 1100ml"],"q":66.0,"a":"","d":null,"b":6,"f":0.96,"h":1.34}]},{"k":"Not moving","r":"Slow stock","s":[{"p":["100231 6 x 3005g Golden Swan Pineapple Pieces"],"q":49.0,"a":"02/29","d":873,"b":5,"f":1.0,"h":1.02},{"p":["100231 6 x 3005g Golden Swan Pineapple Pieces"],"q":7.0,"a":"02/29","d":873,"b":5,"f":0.2,"h":0.53}]},0,0,{"k":"Not moving","r":"Slow stock","s":[{"p":["102559 Golden Plum Chinkiang Vinegar 550ml*12","102560 Kesar Mango Pulp","102584 CORIANDER SEEDS (50gx10)","+1 more"],"q":9.0,"a":"06/27","d":244,"b":3,"f":0.2,"h":0.84},0]}]},{"c":"C","x":5,"h":0,"r":2,"nl":5,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["100565 4oz Pink Apple Sauce Cup & Lids PKWE 450pc","100585 Medium Marigold Gloves BE Packs"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.34},{"p":["100585 Medium Marigold Gloves BE Packs","101746 Mae Ploy Panang Curry Paste"],"q":40.3,"a":"06/28","d":629,"b":5,"f":0.97,"h":1.58}]},0,0,0,0]},{"c":"D","x":5,"h":0,"r":3,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100363 20L DARK Pun Chun Dark Soy Sauce BE Drum","100534 VT-5 (S3) - Carrier Bag BNWE 1000PC (8*C500/"],"q":43.0,"a":"04/28","d":558,"b":5,"f":1.0,"h":1.46},{"p":["100534 VT-5 (S3) - Carrier Bag BNWE 1000PC (8*C500/","101191 Master Kong Plum Juice 500ml*15","101884 NITTAYA Green Curry Paste"],"q":58.3,"a":"01/27","d":107,"b":2,"f":0.96,"h":1.19}]},0,0,0,0]},{"c":"E","x":5,"h":0,"r":4,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100273 4 x 3kg Eurostar Corn Flour","100959 No.6a Lids Pink Apple Heavy Lids WEBE 500PC"],"q":63.8,"a":"05/28","d":603,"b":5,"f":1.0,"h":0.99},{"p":["100959 No.6a Lids Pink Apple Heavy Lids WEBE 500PC","102335 Kong Moon Welcome Swallow Rice Stick Vermice","100353 Healthy Boy Thin Soy Sauce 700ml"],"q":66.7,"a":"06/28","d":622,"b":5,"f":0.96,"h":0.95}]},0,0,0,0]},{"c":"F","x":5,"h":0,"r":5,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100331 6 x 2.27 LKK Panda Oyster Sauce BN"],"q":66.0,"a":"06/28","d":627,"b":5,"f":1.0,"h":1.63},{"p":["100331 6 x 2.27 LKK Panda Oyster Sauce BN"],"q":66.0,"a":"11/28","d":773,"b":5,"f":1.0,"h":1.63}]},{"k":"Fast","r":"Reserve","s":[{"p":["100331 6 x 2.27 LKK Panda Oyster Sauce BN"],"q":6.0,"a":"11/28","d":778,"b":5,"f":0.2,"h":0.85},0]},0,0,0]},{"c":"G","x":5,"h":0,"r":6,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["101394 Kukai Fresh Udon Noodle WE 200g*30","100386 6 x 900g Knorr Chicken Powder YW"],"q":100.0,"a":"12/27","d":421,"b":4,"f":1.0,"h":1.6},{"p":["100386 6 x 900g Knorr Chicken Powder YW","100475 Small OKF Aloe Vera Drink BNGN 500ML * 20","100455 EA-070 East Asia Aniseeds Star BNRD 1KG * 20"],"q":92.1,"a":"11/27","d":414,"b":4,"f":0.97,"h":1.59}]},0,0,0,0]},{"c":"H","x":5,"h":1,"r":0,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100553 C500 Pink Apple Plastic Container+Lids GNWE "],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.03},{"p":["100553 C500 Pink Apple Plastic Container+Lids GNWE "],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":1.03}]},{"k":"Fast","r":"Reserve","s":[{"p":["100553 C500 Pink Apple Plastic Container+Lids GNWE "],"q":8.0,"a":"","d":null,"b":6,"f":0.2,"h":0.53},0]},0,0,0]},{"c":"I","x":5,"h":1,"r":1,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100569 8oz Pink Apple Sauce Cup & Lids GNWE 240PC"],"q":40.0,"a":"","d":null,"b":6,"f":1.0,"h":0.95},{"p":["100569 8oz Pink Apple Sauce Cup & Lids GNWE 240PC","101385 Bicarbonate Soda - Song Rou Fen","100261 Lungkow Glass Vermicelli BNBE 250G * 50","+1 more"],"q":51.5,"a":"06/27","d":238,"b":3,"f":0.99,"h":0.94}]},0,0,0,0]},{"c":"J","x":5,"h":1,"r":2,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100274 00 Eurostar 00 Noodle Flour RD Wheat"],"q":36.0,"a":"06/27","d":267,"b":3,"f":1.0,"h":1.45},{"p":["100274 00 Eurostar 00 Noodle Flour RD Wheat"],"q":36.0,"a":"06/27","d":267,"b":3,"f":1.0,"h":1.45}]},{"k":"Fast","r":"Reserve","s":[{"p":["100274 00 Eurostar 00 Noodle Flour RD Wheat"],"q":36.0,"a":"06/27","d":267,"b":3,"f":1.0,"h":1.45},{"p":["100274 00 Eurostar 00 Noodle Flour RD Wheat"],"q":6.0,"a":"06/27","d":267,"b":3,"f":0.2,"h":0.76}]},0,0,0]},{"c":"K","x":5,"h":1,"r":3,"nl":5,"L":[{"k":"Fast","r":"Pick face","s":[{"p":["100288 Manora Prawn Crackers BN Thai Flavour","100415 LYLE'S Golden Syrup BNBN 7.25kg per Drum"],"q":95.5,"a":"11/27","d":414,"b":4,"f":1.0,"h":1.19},{"p":["100415 LYLE'S Golden Syrup BNBN 7.25kg per Drum","100290 Wah Loong 5-Spice Powder YW 227G","101915 Halves Dragon Pearl Straw Mushroom 425g"],"q":96.8,"a":"12/27","d":423,"b":4,"f":0.98,"h":1.54}]},0,0,0,0]},{"c":"L","x":5,"h":1,"r":4,"nl":5,"L":[{"k":"Medium","r":"Pick face","s":[{"p":["102279 20kg Mencius premium Long Grain Rice"],"q":45.0,"a":"05/27","d":220,"b":3,"f":1.0,"h":1.57},{"p":["102279 20kg Mencius premium Long Grain Rice"],"q":45.0,"a":"04/28","d":546,"b":5,"f":1.0,"h":1.57}]},{"k":"Medium","r":"Reserve","s":[{"p":["102279 20kg Mencius premium Long Grain Rice"],"q":45.0,"a":"04/28","d":546,"b":5,"f":1.0,"h":1.57},{"p":["102279 20kg Mencius premium Long Grain Rice"],"q":45.0,"a":"04/28","d":546,"b":5,"f":1.0,"h":1.57}]},{"k":"Medium","r":"Reserve","s":[{"p":["102279 20kg Mencius premium Long Grain Rice"],"q":25.0,"a":"04/28","d":546,"b":5,"f":0.56,"h":1.15},0]},0,0]}],"bands":["30 days or less","31-90 days","91-180 days","6-12 months","12-18 months","Over 18 months","No date"],"bh":["#D32F2F","#F57C00","#FDD835","#8BC34A","#00897B","#1565C0","#9E9E9E"],"ch":{"Fast":"#5E35B1","Medium":"#9575CD","Slow":"#D1C4E9","Stalled":"#8D6E63","Not moving":"#546E7A"}};
+var BAYS=D.bays, BANDS=D.bands, BH=D.bh, CLS=D.ch, RL=D.levels;
+var $=function(id){return document.getElementById(id);};
+var hint=$('hint');
+if(typeof THREE==='undefined'){hint.textContent='The 3D library could not be loaded. Check the internet connection and reload.';return;}
+try{
+var XC=[0,4.2,5.4,9.6,10.8,15.0], AX=[2.1,7.5,12.9], FACE=[1,-1,1,-1,1,-1], LET=['A','B','C','D','E','F'];
+var BL=2.8, CROSS=4.0, TOPROWS=7, LVH=[0,2.05,4.10,6.15,8.20,10.25,12.30], PH=1.5;
+var MAXL=Math.max.apply(null,RL), ZB=TOPROWS*BL+CROSS, ZEND=ZB+TOPROWS*BL, CX=7.5, CZ=ZEND/2;
+var CDESC={'Fast':'sells almost every day','Medium':'sells most weeks','Slow':'sells on few days','Stalled':'has stopped selling','Not moving':'no sales this period'};
+var WHY={'Pick face':'Fast or medium seller kept on the floor shelf so pickers reach it quickly.','Reserve':'Back-up pallets of the same product, stacked above its pick face.','Upper stock':'Fast or medium seller stored on an upper shelf.','Slow stock':'Slow or stopped product stored high and out of the way.'};
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888888';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function zc(b){return (b.h===0?b.r*BL:ZB+b.r*BL)+BL/2;}
+function bayNo(b){return (b.h===0?b.r:TOPROWS+b.r)+1;}
+function bayCode(b){return LET[b.x]+'-'+('0'+bayNo(b)).slice(-2);}
+function shelfCode(b,l){return bayCode(b)+'-'+l;}
+function fh(b){return LVH[b.nl-1]+0.05;}
+function chipStyle(k){return 'background:'+CLS[k]+(k==='Slow'?';color:#222':'');}
+function slotColor(loc,s,mode){ if(mode==='class') return CLS[loc.k]||'#888888'; return BH[s.b]; }
+var classCount={}, zonePlanes=[], zoneSigns=[], nameSprites=[], pick=[], pallets=[], slots=[];
+
+// ---------- renderer, scene ----------
+var cv=$('c'), view=$('view');
+var renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+var scene=new THREE.Scene();
+var camera=new THREE.PerspectiveCamera(45,1,0.1,600);
+scene.add(new THREE.AmbientLight(0xffffff,0.8));
+var sun=new THREE.DirectionalLight(0xffffff,0.6); sun.position.set(30,70,25); scene.add(sun);
+var floorMat=new THREE.MeshLambertMaterial({color:0xcfd4d9});
+var floor=new THREE.Mesh(new THREE.PlaneGeometry(120,150),floorMat); floor.rotation.x=-Math.PI/2; floor.position.set(CX,-0.02,CZ); scene.add(floor);
+var crossMat=new THREE.MeshBasicMaterial({color:0xb0bec5,transparent:true,opacity:0.9});
+var cross=new THREE.Mesh(new THREE.PlaneGeometry(18.5,CROSS),crossMat); cross.rotation.x=-Math.PI/2; cross.position.set(CX,0.02,TOPROWS*BL+CROSS/2); scene.add(cross);
+var uprMat=new THREE.MeshLambertMaterial({color:0x90a4ae}), beamMat=new THREE.MeshLambertMaterial({color:0x37474f}), woodMat=new THREE.MeshLambertMaterial({color:0x8d6e63}), spineMat=new THREE.MeshLambertMaterial({color:0x546e7a});
+function applyTheme(){ scene.background=new THREE.Color(css('--scene')); floorMat.color.set(css('--floor')); crossMat.color.set(css('--cross')); uprMat.color.set(css('--rack')); beamMat.color.set(css('--beam')); woodMat.color.set(css('--wood')); }
+
+function label(text,size,col){
+  var c=document.createElement('canvas'); c.width=256; c.height=96; var g=c.getContext('2d');
+  g.font='bold 54px Arial, sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+  g.lineWidth=10; g.strokeStyle='rgba(255,255,255,0.92)'; g.strokeText(text,128,50); g.fillStyle=col; g.fillText(text,128,50);
+  var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));
+  sp.scale.set(size*2.67,size,1); sp.renderOrder=10; return sp;
+}
+function qrTex(text){
+  var c=document.createElement('canvas'); c.width=192; c.height=96; var g=c.getContext('2d');
+  g.fillStyle='#ffffff'; g.fillRect(0,0,192,96); g.strokeStyle='#263238'; g.lineWidth=5; g.strokeRect(2.5,2.5,187,91);
+  var n=9, m=8.4, x0=9, y0=10, seed=0; for(var i=0;i<text.length;i++) seed=(seed*31+text.charCodeAt(i))>>>0;
+  var cs=[[0,0],[0,n-3],[n-3,0]]; g.fillStyle='#111111';
+  for(var r=0;r<n;r++){ for(var q=0;q<n;q++){
+    var isF=false, fb=false;
+    cs.forEach(function(c0){ if(r>=c0[0]&&r<c0[0]+3&&q>=c0[1]&&q<c0[1]+3){ isF=true; fb=!(r===c0[0]+1&&q===c0[1]+1); } });
+    var v=(seed+r*131+q*977+r*q*17)>>>0; v^=v>>>7; v=(v*2654435761)>>>0; var on=isF?fb:((v>>>9)&1)===1;
+    if(on) g.fillRect(x0+q*m,y0+r*m,m,m);
+  } }
+  g.font='bold 27px Arial, sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(text,143,48);
+  return new THREE.CanvasTexture(c);
+}
+function sign(text,sub,w,h,bg,fg){
+  var c=document.createElement('canvas'); c.width=512; c.height=Math.round(512*h/w); var g=c.getContext('2d');
+  g.fillStyle=bg; g.fillRect(0,0,c.width,c.height); g.strokeStyle='#ffffff'; g.lineWidth=8; g.strokeRect(6,6,c.width-12,c.height-12);
+  g.fillStyle=fg; g.textAlign='center'; g.textBaseline='middle';
+  g.font='bold '+Math.round(c.height*(sub?0.46:0.62))+'px Arial, sans-serif'; g.fillText(text,c.width/2,c.height*(sub?0.36:0.52));
+  if(sub){ g.font='bold '+Math.round(c.height*0.2)+'px Arial, sans-serif'; g.fillText(sub,c.width/2,c.height*0.78); }
+  var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:false,depthTest:true})); sp.scale.set(w,h,1); return sp;
+}
+function nameSprite(text,k,extra){
+  var c=document.createElement('canvas'); c.width=320; c.height=64; var g=c.getContext('2d');
+  g.fillStyle='rgba(255,255,255,0.95)'; g.fillRect(0,0,320,64); g.fillStyle=CLS[k]||'#888'; g.fillRect(0,0,14,64);
+  g.strokeStyle='#263238'; g.lineWidth=3; g.strokeRect(1.5,1.5,317,61);
+  g.fillStyle='#111'; g.textAlign='left'; g.textBaseline='middle'; g.font='bold 26px Arial, sans-serif';
+  var t=text.length>24?text.slice(0,23)+'...':text; g.fillText(t,24,24);
+  g.font='19px Arial, sans-serif'; g.fillStyle='#455a64'; g.fillText(k+(extra?'  '+extra:''),24,49);
+  var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));
+  sp.scale.set(2.5,0.5,1); sp.renderOrder=11; return sp;
+}
+
+// ---------- rack frames ----------
+var strips={}; BAYS.forEach(function(b){var k=b.x+'_'+b.h; strips[k]=Math.max(strips[k]||0,b.r+1);});
+var upCount=0; Object.keys(strips).forEach(function(k){upCount+=strips[k]+1;});
+var unit=new THREE.BoxGeometry(1,1,1);
+var upI=new THREE.InstancedMesh(unit,uprMat,upCount*2), bmI=new THREE.InstancedMesh(unit,beamMat,BAYS.length*16);
+var m4=new THREE.Matrix4(), sc4=new THREE.Matrix4(), ui=0, bi=0;
+function setBox(inst,idx,x,y,z,sx,sy,sz){ m4.makeScale(sx,sy,sz); m4.setPosition(x,y,z); inst.setMatrixAt(idx,m4); }
+Object.keys(strips).forEach(function(k){
+  var p=k.split('_'), col=+p[0], half=+p[1], n=strips[k], z0=half===0?0:ZB, H=LVH[RL[col]-1]+0.05;
+  for(var i=0;i<=n;i++){ [-0.45,0.45].forEach(function(dx){ setBox(upI,ui++,XC[col]+dx,H/2,z0+i*BL,0.1,H,0.1); }); }
+});
+BAYS.forEach(function(b){
+  var z=zc(b), x=XC[b.x], H=fh(b);
+  for(var l=2;l<=b.nl;l++){ [-0.45,0.45].forEach(function(dx){ setBox(bmI,bi++,x+dx,LVH[l-1]-0.07,z,0.1,0.14,BL-0.1); }); }
+  [-0.45,0.45].forEach(function(dx){ setBox(bmI,bi++,x+dx,H-0.1,z,0.1,0.14,BL-0.1); });
+});
+upI.instanceMatrix.needsUpdate=true; bmI.instanceMatrix.needsUpdate=true; scene.add(upI); scene.add(bmI);
+[[1,2],[3,4]].forEach(function(pr){ var H=Math.max(LVH[RL[pr[0]]-1],LVH[RL[pr[1]]-1])+0.05; [[0,TOPROWS*BL],[ZB,TOPROWS*BL]].forEach(function(seg){
+  var m=new THREE.Mesh(unit,spineMat); m.scale.set(0.16,H,seg[1]); m.position.set((XC[pr[0]]+XC[pr[1]])/2,H/2,seg[0]+seg[1]/2); scene.add(m); }); });
+
+// ---------- pallets, labels, name tags ----------
+var hitMat=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false});
+var qg=new THREE.PlaneGeometry(0.62,0.31);
+BAYS.forEach(function(b,i){
+  var z=zc(b), x=XC[b.x], H=fh(b);
+  var hb=new THREE.Mesh(new THREE.BoxGeometry(1.2,H+2,BL-0.1),hitMat); hb.position.set(x,(H+2)/2,z); hb.userData={bay:i}; scene.add(hb); pick.push(hb);
+  var sp=label(bayCode(b),0.9,'#2c2c2a'); sp.position.set(x,H+2.3,z); scene.add(sp);
+  for(var ql=1;ql<=b.nl;ql++){ var qm=new THREE.Mesh(qg,new THREE.MeshBasicMaterial({map:qrTex(shelfCode(b,ql))})); qm.rotation.y=FACE[b.x]>0?Math.PI/2:-Math.PI/2; qm.position.set(x+FACE[b.x]*0.58,ql===1?0.34:LVH[ql-1]-0.2,z); scene.add(qm); }
+  b.L.forEach(function(loc,li){
+    if(!loc) return; var lvl=li+1;
+    loc.s.forEach(function(s,si){
+      if(!s) return;
+      var mat=new THREE.MeshLambertMaterial({color:slotColor(loc,s,'class')}), h=s.h, dz=si===0?-0.7:0.7;
+      var m=new THREE.Mesh(unit,mat); m.scale.set(0.95,h,1.2); m.position.set(x,LVH[li]+0.14+h/2,z+dz); m.userData={bay:i,level:lvl,side:si}; scene.add(m); pick.push(m); pallets.push(m);
+      var w=new THREE.Mesh(unit,woodMat); w.scale.set(0.95,0.14,1.2); w.position.set(x,LVH[li]+0.07,z+dz); scene.add(w);
+      slots.push({bay:i,lvl:lvl,side:si,loc:loc,s:s,mat:mat,meshes:[m,w]}); classCount[loc.k]=(classCount[loc.k]||0)+1;
+    });
+    var first=loc.s[0]||loc.s[1];
+    if(first){
+      var nm=first.p[0].replace(/^\d+\s+/,''); var more=loc.s.filter(function(q){return q;}).reduce(function(a,q){return a+q.p.length;},0)-1;
+      var ns=nameSprite(nm,loc.k,more>0?('+'+more+' more'):''); ns.position.set(x+FACE[b.x]*0.9,LVH[li]+0.55,z); ns.userData={bay:i,lvl:lvl,k:loc.k,face:FACE[b.x]}; scene.add(ns); nameSprites.push(ns);
+    }
+  });
+});
+
+// zones on the floor and signs
+function band(z0,z1,color,op){ var m=new THREE.Mesh(new THREE.PlaneGeometry(18.5,z1-z0),new THREE.MeshBasicMaterial({color:color,transparent:true,opacity:op})); m.rotation.x=-Math.PI/2; m.position.set(CX,0.04,(z0+z1)/2); scene.add(m); zonePlanes.push(m); }
+band((TOPROWS-2)*BL,ZB+2*BL,0x5e35b1,0.38); band(0,2*BL,0xb39ddb,0.5); band(ZB+5*BL,ZEND,0xb39ddb,0.5);
+function zsign(text,sub,z,bg,fg){ var s=sign(text,sub,4.6,1.6,bg,fg); s.position.set(-3.2,7.5,z); scene.add(s); zoneSigns.push(s); }
+zsign('FAST ZONE','nearest the cross aisle',(TOPROWS-2)*BL+ (ZB+2*BL-(TOPROWS-2)*BL)/2,'#5e35b1','#ffffff');
+zsign('SLOW ZONE','far end of the aisles',BL,'#b39ddb','#1b1b19'); zsign('SLOW ZONE','far end of the aisles',ZEND-BL,'#b39ddb','#1b1b19');
+var HEADS=['BO to CA','BB to BN','AN to BA','Z to AM','M to Y','A to L'];
+[-1.4,ZEND+1.4].forEach(function(zz){
+  LET.forEach(function(L,c){ var s=sign(L,HEADS[c],1.5,1.4,'#ffffff','#0f6e56'); s.position.set(XC[c],12.6,zz); scene.add(s); });
+  AX.forEach(function(x,i){ var s=sign('AISLE '+(i+1),'racks '+LET[2*i]+' and '+LET[2*i+1],4.0,1.35,'#0f6e56','#ffffff'); s.position.set(x,14.6,zz+(zz<0?-0.6:0.6)); scene.add(s); });
+});
+var cl=label('CROSS AISLE',1.5,'#263238'); cl.position.set(CX,0.9,TOPROWS*BL+CROSS/2); scene.add(cl);
+
+// ---------- selection ----------
+var selBox=new THREE.Mesh(unit,new THREE.MeshBasicMaterial({color:0x0f6e56,transparent:true,opacity:0.2,depthWrite:false})); selBox.visible=false; scene.add(selBox);
+var selEdge=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),new THREE.LineBasicMaterial({color:0x0f6e56})); selEdge.visible=false; scene.add(selEdge);
+function statusOf(s){ if(!s.a) return ['No date in Swords: check the pallet label','#757575']; if(s.d<0) return ['Expired','#d32f2f']; if(s.d<=30) return ['Short-dated: pick first','#d32f2f']; if(s.d<=90) return ['Watch: 31 to 90 days','#e65100']; return ['OK','#2e7d32']; }
+function palHtml(s,side){
+  if(!s) return '<div class="pal"><i style="background:transparent"></i><span class="mut">'+side+': empty</span></div>';
+  var st=statusOf(s);
+  return '<div class="pal"><i style="background:'+BH[s.b]+'"></i><span><b>'+side+' pallet</b><br>'+s.p.map(esc).join('<br>')+'<br>'+s.q+' cases<br><b style="color:'+st[1]+'">'+st[0]+'</b>'+(s.a?' ('+s.a+(s.d!==null?', '+s.d+' days':'')+')':'')+'</span></div>';
+}
+function levelHead(loc){ return '<span class="chip" style="'+chipStyle(loc.k)+'">'+esc(loc.k)+'</span> <span class="mut">'+esc(CDESC[loc.k]||'')+'</span><br><span class="mut">'+esc(WHY[loc.r]||'')+'</span>'; }
+function showBay(bi,lvl){
+  var b=BAYS[bi], x=XC[b.x], z=zc(b), H=fh(b);
+  selBox.visible=true; selEdge.visible=true;
+  var h=lvl?2.0:H; selBox.scale.set(1.3,h,BL-0.15); selBox.position.set(x,lvl?LVH[lvl-1]+h/2:H/2,z);
+  selEdge.scale.set(1.35,H+2,BL-0.1); selEdge.position.set(x,(H+2)/2,z);
+  var h2='<b>Bay '+bayCode(b)+'</b> <span class="mut">rack '+LET[b.x]+' ('+b.nl+' shelves), aisle '+(Math.floor(b.x/2)+1)+', plan bay '+esc(b.c)+'</span>';
+  for(var l=b.nl;l>=1;l--){
+    var loc=b.L[l-1];
+    h2+='<div class="lv'+(l===lvl?' sel':'')+'"><b>Shelf '+shelfCode(b,l)+'</b> <span class="mut">'+(l===1?'floor':l===b.nl?'top':'level '+l)+'</span>';
+    if(!loc){ h2+=' <span class="mut">empty</span></div>'; continue; }
+    h2+='<br>'+levelHead(loc)+palHtml(loc.s[0],'Left')+palHtml(loc.s[1],'Right')+'</div>';
+  }
+  $('info').innerHTML=h2;
+}
+function showCard(bi,lvl){
+  var b=BAYS[bi], loc=b.L[lvl-1], f=$('float');
+  var h='<button id="fx" title="Close">&times;</button><b>Scanned '+shelfCode(b,lvl)+'</b><br><span class="mut">Rack '+LET[b.x]+', bay '+bayNo(b)+', level '+lvl+(lvl===1?' (floor)':lvl===b.nl?' (top)':'')+', aisle '+(Math.floor(b.x/2)+1)+'</span>';
+  if(!loc) h+='<br>Empty shelf'; else h+='<br>'+levelHead(loc)+palHtml(loc.s[0],'Left')+palHtml(loc.s[1],'Right');
+  var s0=loc&&(loc.s[0]||loc.s[1]);
+  if(s0){
+    var now=new Date(), tt=('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2), st0=statusOf(s0);
+    h+='<div class="wms"><b>Saved to the WMS (example record)</b><br>'+now.toLocaleDateString('en-GB')+' '+tt+', handheld scanner 03<br>Shelf '+shelfCode(b,lvl)+'<br>'+esc(s0.p[0])+', '+s0.q+' cases<br>Best-before: '+(s0.a?s0.a:'not recorded')+' <b style="display:inline;color:'+st0[1]+'">'+st0[0]+'</b><br><span class="mut">Next: Seasons stock updated, copied to Azure, shown on Power BI.</span></div>';
+  }
+  f.innerHTML=h; f.style.display='block';
+}
+function scanAnim(bi,lvl,px,py){
+  var fx=$('scanfx'); fx.style.left=px+'px'; fx.style.top=py+'px'; fx.style.display='block';
+  setTimeout(function(){ fx.style.display='none'; showBay(bi,lvl); showCard(bi,lvl); },750);
+}
+
+// ---------- modes, filters ----------
+var mode='class', levelOn={}, hits=[], classOn={'Fast':true,'Medium':true,'Slow':true,'Stalled':true,'Not moving':true};
+for(var li=1;li<=MAXL;li++) levelOn[li]=true;
+function setLegend(m){
+  var h='';
+  if(m==='bbd'){ $('legend').className='legend two'; h=BANDS.map(function(n,i){return '<span><i style="background:'+BH[i]+'"></i>'+(n==='No date'?'No date in Swords':n)+'</span>';}).join(''); }
+  else { $('legend').className='legend'; h=['Fast','Medium','Slow','Stalled','Not moving'].map(function(n){return '<span><i style="background:'+CLS[n]+'"></i><span><b>'+n+'</b> ('+(classCount[n]||0)+' pallets): '+CDESC[n]+'</span></span>';}).join(''); }
+  $('legend').innerHTML=h;
+}
+function recolour(){ slots.forEach(function(r){ r.mat.color.set(slotColor(r.loc,r.s,mode)); }); setLegend(mode); }
+function applyLevels(){ slots.forEach(function(r){ var v=!!levelOn[r.lvl] && classOn[r.loc.k]!==false; r.meshes.forEach(function(m){m.visible=v;}); }); }
+function syncZone(){ var on=$('zone').checked; zonePlanes.forEach(function(p){p.visible=on;}); zoneSigns.forEach(function(p){p.visible=on;}); }
+function setMode(m){ mode=m; document.querySelectorAll('input[name=mode]').forEach(function(r){ r.checked=(r.value===m); }); recolour(); }
+(function buildFilters(){
+  var h=''; Object.keys(classOn).forEach(function(k){ h+='<label class="opt"><input type="checkbox" class="cls" value="'+k+'" checked><span class="chip" style="'+chipStyle(k)+'">'+k+'</span>&nbsp;<span class="mut">'+(classCount[k]||0)+'</span></label>'; });
+  $('clsrow').innerHTML=h;
+  document.querySelectorAll('input.cls').forEach(function(c){ c.addEventListener('change',function(){ classOn[c.value]=c.checked; applyLevels(); }); });
+  var l2=''; for(var l=1;l<=MAXL;l++) l2+='<label class="opt"><input type="checkbox" class="lvl" value="'+l+'" checked>L'+l+(l===1?' floor':'')+'</label>';
+  $('lvlrow').innerHTML=l2;
+  document.querySelectorAll('input.lvl').forEach(function(c){ c.addEventListener('change',function(){ levelOn[+c.value]=c.checked; applyLevels(); }); });
+})();
+function doSearch(v){
+  v=v.trim().toLowerCase(); hits=[];
+  slots.forEach(function(r){
+    var hit=v.length>=2 && r.s.p.join(' ').toLowerCase().indexOf(v)>=0;
+    r.mat.emissive.setHex(hit?0x555555:0x000000); if(hit) hits.push(r);
+  });
+  $('res').innerHTML=hits.slice(0,10).map(function(r,i){var b=BAYS[r.bay];return '<button data-i="'+i+'">'+shelfCode(b,r.lvl)+(r.side?' right':' left')+': '+esc(r.s.p[0].replace(/^\d+\s+/,'').slice(0,34))+'</button>';}).join('')+(hits.length>10?'<span class="mut">'+(hits.length-10)+' more</span>':'')+((v.length>=2&&!hits.length)?'<span class="mut">No match</span>':'');
+}
+
+// ---------- camera ----------
+var st={tx:CX,ty:2,tz:CZ,r:72,th:0.55,ph:1.0}, tw=null, flying=false, flyT0=0, flyX=AX[1], FLYMS=30000;
+function placeCam(){
+  if(flying) return; var sp=Math.sin(st.ph);
+  camera.position.set(st.tx+st.r*sp*Math.sin(st.th),st.ty+st.r*Math.cos(st.ph),st.tz+st.r*sp*Math.cos(st.th));
+  camera.lookAt(st.tx,st.ty,st.tz);
+}
+function goTo(t,ms){ var to={}; for(var k in st) to[k]=(t[k]!==undefined?t[k]:st[k]); tw={from:JSON.parse(JSON.stringify(st)),to:to,t0:performance.now(),ms:ms||800}; }
+function stepTween(now){ if(!tw) return; var k=Math.min(1,(now-tw.t0)/tw.ms), e=k<0.5?2*k*k:1-Math.pow(-2*k+2,2)/2; for(var key in tw.to){ st[key]=tw.from[key]+(tw.to[key]-tw.from[key])*e; } if(k>=1) tw=null; }
+function setActive(v){ document.querySelectorAll('button[data-view]').forEach(function(b){ b.classList.toggle('on',b.getAttribute('data-view')===v); }); }
+function views(v){
+  var asp=view.clientWidth/Math.max(1,view.clientHeight); setActive(v);
+  if(v==='overview') goTo({tx:CX,ty:2,tz:CZ,r:asp<1?120:86,th:0.55,ph:1.0});
+  if(v==='top') goTo({tx:CX,ty:0,tz:CZ,r:asp<1?95:70,th:0,ph:0.04});
+  if(v==='cross') goTo({tx:CX,ty:2,tz:TOPROWS*BL+CROSS/2,r:30,th:0.35,ph:1.15});
+}
+function startFly(){ flying=true; tw=null; flyT0=performance.now(); flyX=AX[parseInt($('aisle').value,10)-1]; setActive(''); hint.textContent='Walking the aisle. Press Stop or drag to take over.'; }
+function stopFly(){ if(!flying) return; flying=false; hint.textContent='Drag to turn. Scroll or pinch to zoom. Right-drag to move. Click a bay, or hover a pallet.'; views('overview'); }
+function stopFlyQuiet(){ flying=false; }
+
+// ---------- scanner ----------
+function findShelf(code){
+  var m=/^\s*([A-Fa-f])\s*[-_ ]?\s*(\d{1,2})\s*[-_ ]?\s*([1-7])\s*$/.exec(code); if(!m) return null;
+  var L=m[1].toUpperCase(), n=+m[2], l=+m[3];
+  for(var i=0;i<BAYS.length;i++){ var b=BAYS[i]; if(LET[b.x]===L && bayNo(b)===n){ if(l>b.nl) return null; return {bi:i,lvl:l}; } }
+  return null;
+}
+function doScan(code){
+  var v=(code!==undefined?code:$('code').value), msg=$('scanmsg'), r=findShelf(v);
+  if(!r){ msg.textContent='Code not found. Use a rack letter A to F, a bay number and a level (1 to 5, or 6 on racks B, C and E), for example C-07-3.'; return false; }
+  $('code').value=shelfCode(BAYS[r.bi],r.lvl); msg.textContent='Scanning...'; stopFlyQuiet(); setActive('');
+  var b=BAYS[r.bi];
+  goTo({tx:XC[b.x],ty:LVH[r.lvl-1]+0.7,tz:zc(b),r:3.8,th:FACE[b.x]>0?Math.PI/2:-Math.PI/2,ph:1.45},1100);
+  setTimeout(function(){ var rc=view.getBoundingClientRect(); scanAnim(r.bi,r.lvl,rc.width/2,rc.height/2); msg.textContent=''; },1200);
+  return true;
+}
+(function tryCodes(){
+  var want={A:0,C:0,E:0}, out=[];
+  BAYS.forEach(function(b){ var L=LET[b.x]; if(want[L]===0 && b.L[1] && b.L[1].s[0]){ want[L]=1; out.push(shelfCode(b,2)); } });
+  $('scanmsg').innerHTML='Try: '+out.map(function(c){return '<button class="try" data-c="'+c+'" style="padding:2px 8px;font-size:12px">'+c+'</button>';}).join(' ');
+})();
+$('scanmsg').addEventListener('click',function(e){ var c=e.target&&e.target.getAttribute&&e.target.getAttribute('data-c'); if(c) doScan(c); });
+$('scan').addEventListener('click',function(){ doScan(); });
+$('code').addEventListener('keydown',function(e){ if(e.key==='Enter') doScan(); });
+$('float').addEventListener('click',function(e){ if(e.target&&e.target.id==='fx') $('float').style.display='none'; });
+
+
+// ---------- goods in, dispatch, handheld scanner ----------
+var GIZ=-10, DSZ=ZEND+10;
+function areaPlane(z,color){ var m=new THREE.Mesh(new THREE.PlaneGeometry(18.5,8),new THREE.MeshBasicMaterial({color:color,transparent:true,opacity:0.32})); m.rotation.x=-Math.PI/2; m.position.set(CX,0.03,z); scene.add(m); }
+areaPlane(GIZ,0x1565c0); areaPlane(DSZ,0x2e7d32);
+var sgi=sign('GOODS IN','scan, record best-before, label',6.5,1.8,'#1565c0','#ffffff'); sgi.position.set(CX,7,GIZ-3); scene.add(sgi);
+var sds=sign('DISPATCH','every order scanned before loading',6.5,1.8,'#2e7d32','#ffffff'); sds.position.set(CX,7,DSZ+3); scene.add(sds);
+function gate(z,col){
+  var mt=new THREE.MeshLambertMaterial({color:col});
+  [-2.4,2.4].forEach(function(dx){ var p=new THREE.Mesh(unit,mt); p.scale.set(0.25,3.4,0.25); p.position.set(CX+dx,1.7,z); scene.add(p); });
+  var bar=new THREE.Mesh(unit,mt); bar.scale.set(5.05,0.25,0.25); bar.position.set(CX,3.4,z); scene.add(bar);
+  var head=new THREE.Mesh(unit,new THREE.MeshLambertMaterial({color:0x212121})); head.scale.set(0.7,0.35,0.4); head.position.set(CX,3.1,z); scene.add(head);
+  var beam=new THREE.Mesh(new THREE.ConeGeometry(1.1,2.9,20,1,true),new THREE.MeshBasicMaterial({color:0xff5252,transparent:true,opacity:0.18,side:THREE.DoubleSide,depthWrite:false})); beam.position.set(CX,1.5,z); scene.add(beam);
+  var l=label('FIXED SCANNER',0.7,'#b71c1c'); l.position.set(CX,4.2,z); scene.add(l);
+}
+gate(GIZ+3,0x1565c0); gate(DSZ-3,0x2e7d32);
+function palletAt(x,z,col,h){
+  var w=new THREE.Mesh(unit,woodMat); w.scale.set(1.2,0.14,1.0); w.position.set(x,0.07,z); scene.add(w);
+  var c=new THREE.Mesh(unit,new THREE.MeshLambertMaterial({color:col})); c.scale.set(1.15,h,0.95); c.position.set(x,0.14+h/2,z); scene.add(c);
+  var tag=new THREE.Mesh(new THREE.PlaneGeometry(0.45,0.3),new THREE.MeshBasicMaterial({color:0xffffff})); tag.position.set(x,0.6,z-0.48); tag.rotation.y=Math.PI; scene.add(tag);
+}
+palletAt(CX-3.5,GIZ-0.5,0xd7ccc8,1.1); palletAt(CX-2,GIZ-1.2,0xbcaaa4,1.3); palletAt(CX+2.5,GIZ-0.8,0xd7ccc8,0.9);
+var prn=new THREE.Mesh(unit,new THREE.MeshLambertMaterial({color:0xeceff1})); prn.scale.set(0.9,1.1,0.7); prn.position.set(CX-7,0.55,GIZ+1); scene.add(prn);
+var prl=label('LABEL PRINTER',0.55,'#0d47a1'); prl.position.set(CX-7,1.7,GIZ+1); scene.add(prl);
+// van at dispatch
+var vanM=new THREE.MeshLambertMaterial({color:0xffffff}), cabM=new THREE.MeshLambertMaterial({color:0x2e7d32});
+var van=new THREE.Mesh(unit,vanM); van.scale.set(2.6,2.6,5); van.position.set(CX+5.5,1.6,DSZ+0.5); scene.add(van);
+var cab=new THREE.Mesh(unit,cabM); cab.scale.set(2.6,1.9,1.4); cab.position.set(CX+5.5,1.25,DSZ+3.7); scene.add(cab);
+palletAt(CX-3,DSZ-0.5,0xa5d6a7,1.0); palletAt(CX-1.4,DSZ+0.6,0xc8e6c9,1.2);
+var vl=label('ROUTE VAN',0.6,'#1b5e20'); vl.position.set(CX+5.5,3.6,DSZ+0.5); scene.add(vl);
+// a picker with a handheld scanner in aisle 2, near the cross aisle
+(function(){
+  var x=AX[1], z=TOPROWS*BL-1.5, bodyM=new THREE.MeshLambertMaterial({color:0xff8f00});
+  var body=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.28,1.2,16),bodyM); body.position.set(x,0.95,z); scene.add(body);
+  var head=new THREE.Mesh(new THREE.SphereGeometry(0.22,16,12),new THREE.MeshLambertMaterial({color:0xffcc80})); head.position.set(x,1.78,z); scene.add(head);
+  var dev=new THREE.Mesh(unit,new THREE.MeshLambertMaterial({color:0x212121})); dev.scale.set(0.12,0.08,0.3); dev.position.set(x+0.3,1.2,z+0.25); scene.add(dev);
+  var ray2=new THREE.Mesh(unit,new THREE.MeshBasicMaterial({color:0xff1744})); ray2.scale.set(0.6,0.02,0.02); ray2.position.set(x+0.65,1.2,z+0.25); scene.add(ray2);
+  var l=label('HANDHELD SCANNER',0.6,'#e65100'); l.position.set(x,2.5,z); scene.add(l);
+})();
+function goGoodsIn(){ stopFlyQuiet(); setActive(''); goTo({tx:CX,ty:1.5,tz:GIZ+1,r:24,th:Math.PI*0.88,ph:1.1},1300); }
+function goDispatch(){ stopFlyQuiet(); setActive(''); goTo({tx:CX,ty:1.5,tz:DSZ-1,r:24,th:0.12,ph:1.1},1300); }
+$('goin').addEventListener('click',goGoodsIn); $('godis').addEventListener('click',goDispatch);
+
+// ---------- best-before check ----------
+$('bbasof').textContent='Stock as at '+(D.asof?D.asof.split('-').reverse().join('/'):'the export date')+'. Click a box to light up those pallets in 3D.';
+var BB=[
+  ['Expired','#b71c1c',function(s){return s.a&&s.d!==null&&s.d<0;}],
+  ['30 days or less','#d32f2f',function(s){return s.a&&s.d!==null&&s.d>=0&&s.d<=30;}],
+  ['31 to 90 days','#f57c00',function(s){return s.a&&s.d!==null&&s.d>30&&s.d<=90;}],
+  ['Over 90 days','#2e7d32',function(s){return s.a&&s.d!==null&&s.d>90;}],
+  ['No date in Swords','#757575',function(s){return !s.a||s.d===null;}]
+];
+function lightUp(test){ hits=[]; slots.forEach(function(r){ var on=!!test&&test(r.s); r.mat.emissive.setHex(on?0x666666:0x000000); }); }
+$('bsum').innerHTML=BB.map(function(g,i){
+  var n=slots.filter(function(r){return g[2](r.s);}).length;
+  return '<button data-bb="'+i+'"><b>'+n+'</b><i style="background:'+g[1]+'"></i>'+g[0]+'</button>';
+}).join('');
+$('bsum').addEventListener('click',function(e){
+  var t=e.target.closest?e.target.closest('button[data-bb]'):null; if(!t) return;
+  var g=BB[+t.getAttribute('data-bb')]; setMode('bbd'); lightUp(g[2]);
+  document.querySelectorAll('#bsum button').forEach(function(b){ b.classList.toggle('on',b===t); });
+  stopFlyQuiet(); views('overview');
+});
+$('bbclear').addEventListener('click',function(){ lightUp(null); document.querySelectorAll('#bsum button').forEach(function(b){ b.classList.remove('on'); }); });
+var SHORT=slots.filter(function(r){return r.s.a&&r.s.d!==null;}).sort(function(a,b){return a.s.d-b.s.d;}).slice(0,12);
+function goSlot(r){ var b=BAYS[r.bay]; stopFlyQuiet(); setActive(''); setMode('bbd'); goTo({tx:XC[b.x],ty:LVH[r.lvl-1]+1,tz:zc(b),r:8,th:FACE[b.x]>0?Math.PI/2:-Math.PI/2,ph:1.3},1100); showBay(r.bay,r.lvl); }
+$('pickfirst').innerHTML=SHORT.map(function(r,i){
+  var st0=statusOf(r.s), b=BAYS[r.bay];
+  return '<button data-pf="'+i+'"><b style="color:'+st0[1]+'">'+(r.s.d<0?'Expired':r.s.d+(r.s.d===1?' day':' days'))+'</b> &middot; '+shelfCode(b,r.lvl)+(r.side?' right':' left')+'<br><span class="mut">'+esc(r.s.p[0].replace(/^\d+\s+/,'').slice(0,40))+' (BB '+r.s.a+')</span></button>';
+}).join('')||'<span class="mut">No dated pallets.</span>';
+$('pickfirst').addEventListener('click',function(e){ var t=e.target.closest?e.target.closest('button[data-pf]'):null; if(t) goSlot(SHORT[+t.getAttribute('data-pf')]); });
+var shortEx=SHORT[0]||null;
+
+// ---------- guided tour ----------
+function best(filter,score){ var b=null; slots.forEach(function(r){ if(filter(r)){ var sc=score(r); if(!b||sc>b.sc) b={r:r,sc:sc}; } }); return b&&b.r; }
+var fastEx=best(function(r){return r.loc.k==='Fast'&&r.lvl===1&&r.loc.r==='Pick face';},function(r){return r.s.q;});
+var slowEx=best(function(r){return (r.loc.k==='Slow'||r.loc.k==='Stalled')&&r.lvl>=4;},function(r){return r.lvl*10+r.s.q/1000;});
+function exText(r){ var b=BAYS[r.bay]; return '<br><br><b>Example: '+esc(r.s.p[0].replace(/^\d+\s+/,''))+'</b>Shelf '+shelfCode(b,r.lvl)+', '+r.s.q+' cases. Click Scan to see the shelf card.'; }
+var TOUR=[
+ {t:'1. The whole store',go:function(){ setMode('class'); $('zone').checked=true; syncZone(); views('overview'); },
+  txt:'This is the dry store: 3 aisles, 6 racks (A to F) and 79 bays. Every pallet has a place. The colours show how fast each product sells: dark purple = fast, light purple = slow.'},
+ {t:'2. The fast zone',go:function(){ setMode('class'); $('zone').checked=true; syncZone(); goTo({tx:CX,ty:1,tz:CZ,r:42,th:0.75,ph:1.05},1200); },
+  txt:'Fast movers sell almost every day and make up most of the sales. They sit in the bays nearest the cross aisle (the dark purple floor zone), on the floor shelf, so pickers walk the least. Extra pallets of the same product are stacked above.'},
+ {t:'3. The slow zone',go:function(){ setMode('class'); goTo({tx:CX,ty:3,tz:3,r:30,th:0.4,ph:1.1},1200); },
+  txt:'Slow movers sell on few days or have stopped selling. They sit at the far ends of the aisles (the light purple floor zone) and on the top shelves, out of the way. Nobody walks here every day.'},
+ {t:'4. A fast product',go:function(){ if(fastEx){ var b=BAYS[fastEx.bay]; setMode('class'); stopFlyQuiet(); goTo({tx:XC[b.x],ty:LVH[fastEx.lvl-1]+0.9,tz:zc(b),r:7,th:FACE[b.x]>0?Math.PI/2:-Math.PI/2,ph:1.4},1300); showBay(fastEx.bay,fastEx.lvl); } },
+  txt:'A fast product: kept on the floor shelf (level 1) as its pick face, close to the cross aisle. When the pick face is empty, the next pallet is lowered from above.',ex:function(){return fastEx;}},
+ {t:'5. A slow product',go:function(){ if(slowEx){ var b=BAYS[slowEx.bay]; setMode('class'); stopFlyQuiet(); goTo({tx:XC[b.x],ty:LVH[slowEx.lvl-1]+0.9,tz:zc(b),r:9,th:FACE[b.x]>0?Math.PI/2:-Math.PI/2,ph:1.3},1300); showBay(slowEx.bay,slowEx.lvl); } },
+  txt:'A slow product: stored high up on a top shelf, away from the busy bays. It is only fetched by reach truck when someone orders it.',ex:function(){return slowEx;}},
+ {t:'6. Scan a shelf',go:function(){ if(fastEx) doScan(shelfCode(BAYS[fastEx.bay],fastEx.lvl)); },
+  txt:'Every shelf has a QR label. Scanning it shows the product name, how many cases, how fast it sells and its best-before date. You can also type a code like C-07-3 in the Scanner box.'},
+ {t:'7. Goods in',go:function(){ setMode('bbd'); goGoodsIn(); },
+  txt:'Pallets arrive at goods in and pass a fixed scanner. The best-before date and batch number are recorded here. If the supplier label has no barcode for them, staff enter the date once and the label printer prints our own pallet label.'},
+ {t:'8. Put away by date',go:function(){ setMode('bbd'); lightUp(null); goTo({tx:CX,ty:2,tz:CZ,r:48,th:0.6,ph:1.0},1200); },
+  txt:'Colours now show best-before dates (red = 30 days or less, orange = 31 to 90 days, green and blue = longer, grey = no date). Staff scan the shelf label and the pallet label at put-away, and the earliest dates go lowest and on the left so they are picked first.'},
+ {t:'9. Short-dated stock',go:function(){ if(shortEx){ goSlot(shortEx); lightUp(BB[1][2]); } },
+  txt:'The WMS lists the shortest-dated pallets (see Pick first on the left) and sends pickers to them first. A dashboard warns about stock going out of date in 30, 60 and 90 days, so sales can push it before it is wasted.'},
+ {t:'10. Pick with two scans',go:function(){ if(shortEx) doScan(shelfCode(BAYS[shortEx.bay],shortEx.lvl)); },
+  txt:'The picker, with a handheld scanner, scans the shelf label (where) and the pallet label (what). A wrong pallet is caught on the spot. Each scan is saved in the WMS, as shown on the scan card.'},
+ {t:'11. Dispatch',go:function(){ goDispatch(); },
+  txt:'Every finished order passes the fixed scanner at dispatch before it goes on the route van, so missing or wrong items are found before the van leaves.'},
+ {t:'12. Where the data goes',go:function(){ setMode('bbd'); views('overview'); },
+  txt:'Scanners store nothing themselves. Every scan goes over Wi-Fi to the WMS (the main record), then Seasons stock is updated, Azure keeps the history, and Power BI shows the dashboards. See Where scan data goes on the left.'}
+];
+var tourI=-1;
+(function buildTour(){
+  $('tour').innerHTML=TOUR.map(function(s,i){return '<button data-tour="'+i+'">'+s.t.split('. ')[0]+'</button>';}).join('');
+  document.querySelectorAll('button[data-tour]').forEach(function(b){ b.addEventListener('click',function(){ var i=parseInt(b.getAttribute('data-tour'),10); if(!isNaN(i)) runTour(i); }); });
+})();
+function runTour(i){
+  tourI=((i%TOUR.length)+TOUR.length)%TOUR.length; var s=TOUR[tourI]; stopFlyQuiet(); setActive('');
+  s.go(); var ex=s.ex?s.ex():null;
+  $('explain').innerHTML='<b>'+esc(s.t)+'</b>'+esc(s.txt)+(ex?exText(ex):'');
+  document.querySelectorAll('button[data-tour]').forEach(function(b){ b.classList.toggle('on',parseInt(b.getAttribute('data-tour'),10)===tourI); });
+}
+$('next').addEventListener('click',function(){ runTour(tourI+1); });
+$('prev').addEventListener('click',function(){ runTour(tourI<=0?0:tourI-1); });
+
+// ---------- mouse / touch ----------
+var ptrs={}, drag=null, lastPinch=0, tipT=0;
+cv.addEventListener('contextmenu',function(e){e.preventDefault();});
+cv.addEventListener('pointerdown',function(e){
+  if(flying){ stopFly(); return; }
+  try{cv.setPointerCapture(e.pointerId);}catch(x){}
+  ptrs[e.pointerId]={x:e.clientX,y:e.clientY}; tw=null; $('tip').style.display='none';
+  drag={x:e.clientX,y:e.clientY,moved:false,pan:(e.button===2||e.shiftKey)}; lastPinch=0;
+});
+var ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
+function hover(e){
+  var now=Date.now(); if(now-tipT<70) return; tipT=now;
+  var rc=cv.getBoundingClientRect(); ndc.set(((e.clientX-rc.left)/rc.width)*2-1,-((e.clientY-rc.top)/rc.height)*2+1);
+  ray.setFromCamera(ndc,camera);
+  var ints=ray.intersectObjects(pallets,false).filter(function(i){return i.object.visible!==false;});
+  var tip=$('tip');
+  if(!ints.length){ tip.style.display='none'; return; }
+  var u=ints[0].object.userData, b=BAYS[u.bay], loc=b.L[u.level-1], s=loc&&loc.s[u.side]; if(!s){ tip.style.display='none'; return; }
+  var st2=statusOf(s);
+  tip.innerHTML='<b>'+esc(s.p[0].replace(/^\d+\s+/,''))+'</b>'+(s.p.length>1?' <span class="mut">+'+(s.p.length-1)+' more</span>':'')+'<br><span class="chip" style="'+chipStyle(loc.k)+'">'+esc(loc.k)+'</span> '+shelfCode(b,u.level)+'<br>'+s.q+' cases, <span style="color:'+st2[1]+'">'+(s.a?s.a:'no date')+'</span>';
+  tip.style.left=Math.min(rc.width-290,(e.clientX-rc.left)+14)+'px'; tip.style.top=Math.max(4,(e.clientY-rc.top)-10)+'px'; tip.style.display='block';
+}
+cv.addEventListener('pointermove',function(e){
+  if(!ptrs[e.pointerId]){ hover(e); return; }
+  var prev=ptrs[e.pointerId], ids=Object.keys(ptrs);
+  if(ids.length>=2){
+    ptrs[e.pointerId]={x:e.clientX,y:e.clientY};
+    var d=Math.hypot(ptrs[ids[0]].x-ptrs[ids[1]].x,ptrs[ids[0]].y-ptrs[ids[1]].y);
+    if(lastPinch>0) st.r=clamp(st.r*(lastPinch/d),6,170);
+    lastPinch=d; drag.moved=true; return;
+  }
+  var dx=e.clientX-prev.x, dy=e.clientY-prev.y; ptrs[e.pointerId]={x:e.clientX,y:e.clientY};
+  if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y)>5) drag.moved=true;
+  if(!drag.moved) return;
+  if(drag.pan){ var k=st.r*0.0016; st.tx+=(-dx*Math.cos(st.th)-dy*Math.sin(st.th))*k; st.tz+=(dx*Math.sin(st.th)-dy*Math.cos(st.th))*k; }
+  else { st.th-=dx*0.006; st.ph=clamp(st.ph-dy*0.005,0.04,1.52); }
+  setActive('');
+});
+cv.addEventListener('pointerleave',function(){ $('tip').style.display='none'; });
+function endPtr(e){ var was=ptrs[e.pointerId]; delete ptrs[e.pointerId]; lastPinch=0; if(was && drag && !drag.moved && Object.keys(ptrs).length===0) pickAt(e); }
+cv.addEventListener('pointerup',endPtr); cv.addEventListener('pointercancel',function(e){delete ptrs[e.pointerId];});
+cv.addEventListener('wheel',function(e){ e.preventDefault(); if(flying) return; tw=null; st.r=clamp(st.r*Math.exp(e.deltaY*0.0012),6,170); },{passive:false});
+function pickAt(e){
+  var rc=cv.getBoundingClientRect(); ndc.set(((e.clientX-rc.left)/rc.width)*2-1,-((e.clientY-rc.top)/rc.height)*2+1);
+  ray.setFromCamera(ndc,camera);
+  var ints=ray.intersectObjects(pick,false).filter(function(i){return i.object.visible!==false;});
+  if(!ints.length){ selBox.visible=false; selEdge.visible=false; return; }
+  var bi=ints[0].object.userData.bay, lvl=0;
+  for(var i=0;i<ints.length;i++){ var u=ints[i].object.userData; if(u.bay===bi && u.level){ lvl=u.level; break; } }
+  if(!lvl){ var y=ints[0].point.y, bestd=1e9, nl=BAYS[bi].nl; for(var l=1;l<=nl;l++){ var dd=Math.abs(y-(LVH[l-1]+0.9)); if(dd<bestd){bestd=dd;lvl=l;} } }
+  scanAnim(bi,lvl,e.clientX-rc.left,e.clientY-rc.top);
+}
+
+// ---------- wiring ----------
+document.querySelectorAll('button[data-view]').forEach(function(b){ b.addEventListener('click',function(){ stopFlyQuiet(); views(b.getAttribute('data-view')); }); });
+$('fly').addEventListener('click',startFly); $('stop').addEventListener('click',function(){ if(flying) stopFly(); else views('overview'); });
+document.querySelectorAll('input[name=mode]').forEach(function(r){ r.addEventListener('change',function(){ mode=r.value; recolour(); }); });
+$('zone').addEventListener('change',syncZone);
+$('q').addEventListener('input',function(){ doSearch(this.value); });
+$('res').addEventListener('click',function(e){
+  var t=e.target; if(!t||!t.getAttribute||t.getAttribute('data-i')===null) return;
+  var r=hits[+t.getAttribute('data-i')]; if(!r) return; var b=BAYS[r.bay]; stopFlyQuiet(); setActive('');
+  goTo({tx:XC[b.x],ty:LVH[r.lvl-1]+1,tz:zc(b),r:8,th:FACE[b.x]>0?Math.PI/2:-Math.PI/2,ph:1.3},900); showBay(r.bay,r.lvl);
+});
+function resize(){ var w=Math.max(10,view.clientWidth), h=Math.max(10,view.clientHeight); renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+if(window.ResizeObserver){ new ResizeObserver(resize).observe(view); } window.addEventListener('resize',resize);
+try{ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyTheme); }catch(x){}
+new MutationObserver(applyTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+setLegend('class'); applyTheme(); recolour(); syncZone(); resize(); views('overview');
+hint.textContent='Drag to turn. Scroll or pinch to zoom. Right-drag to move. Click a bay, or hover a pallet.';
+function updateNames(){
+  var on=$('names').checked, all=$('allnames').checked, R=all?70:14, cp=camera.position;
+  nameSprites.forEach(function(s){
+    var u=s.userData, dx=cp.x-s.position.x, dy=cp.y-s.position.y, dz=cp.z-s.position.z, d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    s.visible=on && d<R && dx*u.face>-0.5 && !!levelOn[u.lvl] && classOn[u.k]!==false;
+  });
+}
+function loop(now){
+  requestAnimationFrame(loop); now=now||performance.now(); stepTween(now);
+  if(flying){ var k=(now-flyT0)/FLYMS; if(k>=1){ stopFly(); } else { var z=-8+58*k; camera.position.set(flyX,1.7,z); camera.lookAt(flyX,3.4,z+9); } }
+  else placeCam();
+  updateNames();
+  renderer.render(scene,camera);
+}
+requestAnimationFrame(loop);
+}catch(err){ hint.textContent='Could not start the 3D view: '+err.message; if(window.console) console.error(err); }
+})();
+</script>
+</body>
+</html>
